@@ -16,21 +16,19 @@ import sqlite3
 import time
 
 
+
 class InstaOps:
     
     conn = sqlite3.connect('auto-insta.db')
+    USR_ID = pd.read_sql("select user_id from creds",conn).user_id[0]
 
-    FOLLOWER_CNT = 0
-    FOLLOWING_CNT = 0
-    
 
-    
-    def __init__(self):
-        
-        options = webdriver.ChromeOptions() 
-        options.add_argument(usr_profile)
-        options.add_argument("--start-maximized")
+    def __init__(self): 
+        options = webdriver.ChromeOptions()  
+        chromedata = pd.read_sql("select chromedata from creds",conn).chromedata[0]
+        if chromedata:
+            options.add_argument(chromedata)
+        options.add_argument("--start-maximized") 
         self.driver = webdriver.Chrome(executable_path="chromedriver", chrome_options=options)
         self.engine = pyttsx3.init()
-        self.engine.setProperty('voice','HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0')
-
+        
