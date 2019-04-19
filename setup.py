@@ -19,7 +19,8 @@ conn.execute('''CREATE TABLE instaDB
 conn.execute('''CREATE TABLE creds
          (user_id VARCHAR(30) PRIMARY KEY NOT NULL,
          user_name VARCHAR(30),
-         passwd VARCHAR(128)
+         passwd VARCHAR(128),
+         chromedata VARCHAR(128)
          )
          WITHOUT ROWID;''')
 
