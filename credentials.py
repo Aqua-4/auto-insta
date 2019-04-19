@@ -10,7 +10,7 @@ conn.execute("DELETE from creds")
 
 conn.execute('''INSERT INTO `creds` (user_id,passwd)
          VALUES("{}","{}")
-        ''').format(user_id, passwd)
+        '''.format(user_id, passwd))
 
 conn.commit()
 
