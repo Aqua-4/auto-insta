@@ -1,5 +1,13 @@
 ## APPROACH:
 
+### Where do i store password?
+
+1. ask for passwd at bot_init
+   1. encrypt and store into DB
+2. Create yaml or Config file for storing password
+   1. Hard to keep this in sync with GIT
+
+
 ### follow_mod:
 
 *  args(hashtag,numOfpeopletoFollow)
