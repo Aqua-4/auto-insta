@@ -73,9 +73,21 @@ class InstaOps:
         self._sync_db_col("followers")
         self._sync_db_col("following")
 
+    def unfollow_unfollowers(self):
+        """
+        Unfollow people who dont follow you back
+        1. select user_id where followers=0
+        2. unfollow(user_id) and updateDB
+        """
+        traitors = pd.read_sql(
+            "select user_id from instaDB where followers=0", self.db_conn)
+        traitors = list(traitors.user_id)
+        self.text_to_speech("Unfollowing users those who don't follow you",False)
+        for traitor in traitors:
+            self._unfollow_user(traitor)
+        self.text_to_speech("Unfollowed unfollowers completed")
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
-
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -124,35 +136,66 @@ class InstaOps:
                 self.db_conn.execute('''INSERT INTO instaDB(user_id,{fol_col},acc_status)
                  Values ("{usr}",1,1);'''.format(fol_col=column, usr=user))
             else:
-                self.db_conn.execute('''UPDATE instaDB  SET 
+                self.db_conn.execute('''UPDATE instaDB  SET
                  {fol_col} = 1,
                  acc_status = 1
                  WHERE user_id = "{usr}";'''.format(fol_col=column, usr=user))
         self.db_conn.commit()
         self.text_to_speech("Column {} has been synced with DB".format(column))
 
+    def _unfollow_user(self, u_name):   
+        # goto user_profile and unfollow
+        insta_link = self.__format_userid(u_name)
+        self.driver.get(insta_link)
+        time.sleep(random.randint(5, 10))
+        if len(self.driver.find_elements_by_tag_name("h2")):
+            self.db_conn.execute('''UPDATE instaDB SET acc_status=0
+             where user_id="{}"'''.format(u_name))
+            self.text_to_speech("User {} acc does not exist anymore".format(u_name),False)
+        else:
+            self.__click_unfollow(u_name)
+
 
 # --------------____________________________Private Func_________________________-------------------
+
+
+    def __click_unfollow(self, u_name):
+        # click unfollow and update in DB
+        try:
+            self.db_conn.execute('''UPDATE instaDB
+                 SET following=0 where user_id="{}";'''.format(u_name))
+            
+            follow_btn=self.driver.find_element_by_xpath(
+                "//button[contains(text(),'Following')]")
+            follow_btn.click()
+
+            unfollow_btn=self.driver.find_element_by_xpath(
+                "//button[contains(text(),'Unfollow')]")
+            unfollow_btn.click()
+            self.text_to_speech("Unfollowed {}".format(u_name), False)
+            time.sleep(random.randint(20, 40))
+        except:
+            self.text_to_speech("ERR: while unfollowing {}".format(u_name))
 
     def __get_usr_name(self, usr_id):
         # return user_name from insta
 
         self.driver.get("https://www.instagram.com/{}/".format(usr_id))
-        usr_name = self.driver.find_elements_by_tag_name('h1')[1].text
+        usr_name=self.driver.find_elements_by_tag_name('h1')[1].text
         self.db_conn.execute('''UPDATE creds SET user_name="{}"
-            where user_id="{}"'''.format(usr_name, self.user_id))
+             where user_id="{}"'''.format(usr_name, self.user_id))
         return usr_name
 
     def __get_number_of(self, btn_link):
         # return number of followers/following
 
         self.driver.get(btn_link)
-        btn_href = btn_link
-        links = self.driver.find_elements_by_tag_name("a")
-        post_count = [
+        btn_href=btn_link
+        links=self.driver.find_elements_by_tag_name("a")
+        post_count=[
             href for href in links if btn_href in href.get_attribute("href")][0].text
         # need to handle for 1k,1M and further
-        int_count = int(post_count.split(' ')[0].replace(",", ""))
+        int_count=int(post_count.split(' ')[0].replace(",", ""))
         return int_count
 
     def __get_list_of(self, attr_name="followers"):
@@ -162,30 +205,31 @@ class InstaOps:
         3. return list
         """
 
-        attr_count = self.__get_number_of(
+        attr_count=self.__get_number_of(
             "https://www.instagram.com/{}/{}/".format(self.user_id, attr_name))
         self.text_to_speech("{} count is {}".format(attr_name, attr_count))
 
-        attr_btn = self.driver.find_element_by_xpath(
+        attr_btn=self.driver.find_element_by_xpath(
             "//a[contains(@href,'/{}/{}/')]".format(self.user_id, attr_name))
         attr_btn.click()
-        self.text_to_speech("Scraping {} list, this operation will take time".format(attr_name), False)
+        self.text_to_speech(
+            "Scraping {} list, this operation will take time".format(attr_name), False)
         time.sleep(5)
 
-        li_cnt = 0
-        prev_cnt = 0
-        ul_list = self.driver.find_elements_by_tag_name("ul")
+        li_cnt=0
+        prev_cnt=0
+        ul_list=self.driver.find_elements_by_tag_name("ul")
 
-        exit_counter = 0
+        exit_counter=0
         while(li_cnt <= attr_count and exit_counter <= 5):
-            prev_cnt = li_cnt
-            li_list = ul_list[-1].find_elements_by_tag_name("li")
+            prev_cnt=li_cnt
+            li_list=ul_list[-1].find_elements_by_tag_name("li")
             try:
                 li_list[-1].location_once_scrolled_into_view
             except:
                 li_list[-2].location_once_scrolled_into_view
 
-            li_cnt = len(li_list)
+            li_cnt=len(li_list)
 
             if li_cnt == prev_cnt:
                 # self.text_to_speech(
@@ -193,14 +237,15 @@ class InstaOps:
                 exit_counter += 1
                 time.sleep(random.randint(3, 6))
             else:
-                exit_counter = 0
-        
-        self.text_to_speech("Operation complete, formatting the results", False)
-            
-        _list = []
+                exit_counter=0
+
+        self.text_to_speech(
+            "Operation complete, formatting the results", False)
+
+        _list=[]
         for i in li_list:
             try:
-                tmp_ele = i.find_element_by_tag_name("a")
+                tmp_ele=i.find_element_by_tag_name("a")
                 _list.append(self.__format_userid(
                     tmp_ele.get_attribute("href")))
             except:
@@ -208,15 +253,14 @@ class InstaOps:
         self.text_to_speech("Returned {} values".format(len(_list)), False)
         return _list
 
-    def __format_userid(self, link, get_id=True):
-        # format into user_url or strip and return user_id
+    def __format_userid(self, link):
+        # if link return username
+        # if username return insta_url
 
-        if len(link.split('/')) == 5 and get_id:
+        if len(link.split('/')) == 5:
             return link.split('/')[-2]
-        elif not get_id:
-            return "https://www.instagram.com/{}/".format(link)
         else:
-            return link
+            return "https://www.instagram.com/{}/".format(link)
 
 # --------------______________________________Utils______________________________-------------------
 
