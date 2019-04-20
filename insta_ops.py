@@ -66,7 +66,7 @@ class InstaOps:
             "https://www.instagram.com/{}/followers/".format(self.user_id))
         self.following_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/following/".format(self.user_id))
-        self.compare_stats(self.follower_cnt, self.following_cnt, True)
+        self._session_stats(self.follower_cnt, self.following_cnt, True)
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
@@ -88,6 +88,21 @@ class InstaOps:
                 "select passwd from creds", self.db_conn).passwd[0])
             passwd.send_keys(Keys.RETURN)
             time.sleep(10)
+
+    def _session_stats(self,session_follower_cnt,session_following_cnt,session_init = False):
+        # announce session stats
+
+        follower_cnt = self.__get_number_of(
+            "https://www.instagram.com/{}/followers/".format(self.user_id))
+        following_cnt = self.__get_number_of(
+            "https://www.instagram.com/{}/following/".format(self.user_id))
+        
+        self.text_to_speech("Your current follower count is {}".format(follower_cnt),True,session_init)
+        self.text_to_speech("You are now following {} people".format(following_cnt),session_init,session_init)    
+        if session_follower_cnt - follower_cnt != 0 and not session_init:
+            diff =follower_cnt - session_follower_cnt
+            lose_gain=  "gained" if diff>0 else "lost"
+            self.text_to_speech("You have {} {} followers".format(lose_gain,abs(diff)))
 
 
 # --------------____________________________Private Func_________________________-------------------
