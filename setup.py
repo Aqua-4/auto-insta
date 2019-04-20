@@ -8,7 +8,7 @@ conn = sqlite3.connect('auto-insta.db')
 
 conn.execute('''CREATE TABLE instaDB
          (user_id VARCHAR(30) PRIMARY KEY NOT NULL,
-         follower INT,
+         followers INT,
          following INT,
          acc_status INT DEFAULT 1,
          bot_lead INT DEFAULT 0,
