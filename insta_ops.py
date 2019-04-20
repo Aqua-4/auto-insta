@@ -66,9 +66,16 @@ class InstaOps:
             "https://www.instagram.com/{}/followers/".format(self.user_id))
         self.following_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/following/".format(self.user_id))
-        self._session_stats(self.follower_cnt, self.following_cnt, True)
+        # self._session_stats(self.follower_cnt, self.following_cnt, True)
+        # self.__get_list_of("followers")
+
+    def sync_db(self):
+        self._sync_db_col("followers")
+        self._sync_db_col("following")
+
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -89,20 +96,40 @@ class InstaOps:
             passwd.send_keys(Keys.RETURN)
             time.sleep(10)
 
-    def _session_stats(self,session_follower_cnt,session_following_cnt,session_init = False):
+    def _session_stats(self, session_follower_cnt, session_following_cnt, session_init=False):
         # announce session stats
 
         follower_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/followers/".format(self.user_id))
         following_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/following/".format(self.user_id))
-        
-        self.text_to_speech("Your current follower count is {}".format(follower_cnt),True,session_init)
-        self.text_to_speech("You are now following {} people".format(following_cnt),session_init,session_init)    
+
+        self.text_to_speech("Your current follower count is {}".format(
+            follower_cnt), True, session_init)
+        self.text_to_speech("You are now following {} people".format(
+            following_cnt), session_init, session_init)
         if session_follower_cnt - follower_cnt != 0 and not session_init:
-            diff =follower_cnt - session_follower_cnt
-            lose_gain=  "gained" if diff>0 else "lost"
-            self.text_to_speech("You have {} {} followers".format(lose_gain,abs(diff)))
+            diff = follower_cnt - session_follower_cnt
+            lose_gain = "gained" if diff > 0 else "lost"
+            self.text_to_speech(
+                "You have {} {} followers".format(lose_gain, abs(diff)))
+
+    def _sync_db_col(self, column="followers"):
+        # sync db column - followers/following
+
+        col_list = self.__get_list_of(column)
+
+        for user in col_list:
+            if pd.read_sql('select * from instaDB where user_id="{}"'.format(user), self.db_conn).empty:
+                self.db_conn.execute('''INSERT INTO instaDB(user_id,{fol_col},acc_status)
+                 Values ("{usr}",1,1);'''.format(fol_col=column, usr=user))
+            else:
+                self.db_conn.execute('''UPDATE instaDB  SET 
+                 {fol_col} = 1,
+                 acc_status = 1
+                 WHERE user_id = "{usr}";'''.format(fol_col=column, usr=user))
+        self.db_conn.commit()
+        self.text_to_speech("Column {} has been synced with DB".format(column))
 
 
 # --------------____________________________Private Func_________________________-------------------
@@ -128,9 +155,70 @@ class InstaOps:
         int_count = int(post_count.split(' ')[0].replace(",", ""))
         return int_count
 
+    def __get_list_of(self, attr_name="followers"):
+        """
+        1. get follower/following count
+        2. open and iterate through the list
+        3. return list
+        """
+
+        attr_count = self.__get_number_of(
+            "https://www.instagram.com/{}/{}/".format(self.user_id, attr_name))
+        self.text_to_speech("{} count is {}".format(attr_name, attr_count))
+
+        attr_btn = self.driver.find_element_by_xpath(
+            "//a[contains(@href,'/{}/{}/')]".format(self.user_id, attr_name))
+        attr_btn.click()
+        self.text_to_speech("Scraping {} list, this operation will take time".format(attr_name), False)
+        time.sleep(5)
+
+        li_cnt = 0
+        prev_cnt = 0
+        ul_list = self.driver.find_elements_by_tag_name("ul")
+
+        exit_counter = 0
+        while(li_cnt <= attr_count and exit_counter <= 5):
+            prev_cnt = li_cnt
+            li_list = ul_list[-1].find_elements_by_tag_name("li")
+            try:
+                li_list[-1].location_once_scrolled_into_view
+            except:
+                li_list[-2].location_once_scrolled_into_view
+
+            li_cnt = len(li_list)
+
+            if li_cnt == prev_cnt:
+                # self.text_to_speech(
+                #     "Loading list, Current count is {} and will terminate in {}".format(li_cnt, exit_counter), False)
+                exit_counter += 1
+                time.sleep(random.randint(3, 6))
+            else:
+                exit_counter = 0
+        
+        self.text_to_speech("Operation complete, formatting the results", False)
+            
+        _list = []
+        for i in li_list:
+            try:
+                tmp_ele = i.find_element_by_tag_name("a")
+                _list.append(self.__format_userid(
+                    tmp_ele.get_attribute("href")))
+            except:
+                print("ERR: ")
+        self.text_to_speech("Returned {} values".format(len(_list)), False)
+        return _list
+
+    def __format_userid(self, link, get_id=True):
+        # format into user_url or strip and return user_id
+
+        if len(link.split('/')) == 5 and get_id:
+            return link.split('/')[-2]
+        elif not get_id:
+            return "https://www.instagram.com/{}/".format(link)
+        else:
+            return link
 
 # --------------______________________________Utils______________________________-------------------
-
 
     def text_to_speech(self, text_string="Test", bool_print=True, bool_speak=True):
         # setup TTS for audio output
