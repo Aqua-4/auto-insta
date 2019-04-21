@@ -67,10 +67,66 @@ class InstaOps:
         self.following_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/following/".format(self.user_id))
         self._session_stats(self.follower_cnt, self.following_cnt, True)
-        
+
     def sync_db(self):
         self._sync_db_col("followers")
         self._sync_db_col("following")
+
+    def smart_like(self, user_count=2, per_user_like=3):
+        """
+        1. navigate to random hashtag from list
+        2. open "recently posted first tile"
+        3. navigate through posts collecting user_names
+        4. smart_like(username)
+        """
+        users = []
+        while len(users) < user_count:
+            try:
+                user_name = self.driver.find_element_by_xpath(
+                    '/html/body/div[3]/div/div[2]/div/article/header/div[2]/div[1]/div[1]/h2/a')
+                users.append(user_name.text)
+            except:
+                print("unable to load")
+            click_right = self.driver.find_element_by_xpath('/html/body')
+            click_right.send_keys(Keys.RIGHT)
+            users = list(set(users))
+            time.sleep(random.randint(4, 10))
+        for user in users:
+            liked_url = []
+
+            self.driver.get("https://www.instagram.com/{}/".format(user))
+
+            time.sleep(random.randint(10, 20))
+
+            # open first tile
+            try:
+                first_tile = self.driver.find_element_by_tag_name("article")
+                first_tile.find_element_by_tag_name("a").click()
+            except:
+                print("ERR: No First Tile")
+
+            time.sleep(random.randint(4, 10))
+            err_counter = 0
+            counter = 0
+            while counter < per_user_like and err_counter < 5:
+                try:
+                    like_btn = self.driver.find_element_by_tag_name("section")
+                    like_btn.find_element_by_xpath(
+                        "//span[@aria-label='Like']").click()
+                    err_counter = 0
+                except:
+                    err_counter += 1
+                    print("ERR: failed to like")
+                try:
+                    self.driver.find_element_by_xpath(
+                        '/html/body').send_keys(Keys.RIGHT)
+                    time.sleep(random.randint(4, 10))
+                except:
+                    err_counter += 1
+                    print("ERR: unable to load next post")
+                time.sleep(random.randint(4, 10))
+                liked_url.append(self.driver.current_url)
+                counter += 1
 
     def unfollow_unfollowers(self):
         """
@@ -81,7 +137,8 @@ class InstaOps:
         traitors = pd.read_sql(
             "select user_id from instaDB where followers=0", self.db_conn)
         traitors = list(traitors.user_id)
-        self.text_to_speech("Unfollowing users those who don't follow you",False)
+        self.text_to_speech(
+            "Unfollowing users those who don't follow you", False)
         for traitor in traitors:
             self._unfollow_user(traitor)
         self.text_to_speech("Unfollowed unfollowers completed")
@@ -90,9 +147,22 @@ class InstaOps:
         self.following_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/following/".format(self.user_id))
         self._session_stats(self.follower_cnt, self.following_cnt)
-        
+
+    def tagsearch_n_open(self, tag_name):
+        """
+        1. search for a hash-tag
+        2. open the first photo tile
+        """
+        self.__search_tag(tag_name)
+        try:
+            self.__open_first_tile()
+        except:
+            self.text_to_speech(
+                "Tag search and open failed for {}".format(tag_name))
+
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -148,7 +218,7 @@ class InstaOps:
         self.db_conn.commit()
         self.text_to_speech("Column {} has been synced with DB".format(column))
 
-    def _unfollow_user(self, u_name):   
+    def _unfollow_user(self, u_name):
         # goto user_profile and unfollow
         insta_link = self.__format_userid(u_name)
         self.driver.get(insta_link)
@@ -156,7 +226,8 @@ class InstaOps:
         if len(self.driver.find_elements_by_tag_name("h2")):
             self.db_conn.execute('''UPDATE instaDB SET acc_status=0
              where user_id="{}"'''.format(u_name))
-            self.text_to_speech("User {} acc does not exist anymore".format(u_name),False)
+            self.text_to_speech(
+                "User {} acc does not exist anymore".format(u_name), False)
         else:
             self.__click_unfollow(u_name)
             self.db_conn.commit()
@@ -165,22 +236,43 @@ class InstaOps:
 # --------------____________________________Private Func_________________________-------------------
 
 
+    def __search_tag(self, tag_name):
+        # search insta for tag
+        self.driver.get(
+            "https://www.instagram.com/explore/tags/{}/".format(tag_name.replace("#", "")))
+        time.sleep(5)
+
+    def __open_first_tile(self):
+        # open first tile for tag_search
+        if len(self.driver.find_elements_by_tag_name("h2")) == 2:
+            # open first tile from MOST_RECENT
+            first_tile = self.driver.find_element_by_xpath(
+                '//*[@id="react-root"]/section/main/article/div[2]/div/div[1]/div[1]/a')
+            first_tile.click()
+        else:
+            # open first tile from TOP_POSTS when recents not available
+
+            first_tile = self.driver.find_element_by_xpath(
+                '//*[@id="react-root"]/section/main/article/div[1]/div/div/div[1]/div[1]/a')
+            first_tile.click()
+        time.sleep(5)
+
     def __click_unfollow(self, u_name):
         # click unfollow and update in DB
         try:
-            
-            follow_btn=self.driver.find_element_by_xpath(
+
+            follow_btn = self.driver.find_element_by_xpath(
                 "//button[contains(text(),'Following')]")
             follow_btn.click()
 
-            unfollow_btn=self.driver.find_element_by_xpath(
+            unfollow_btn = self.driver.find_element_by_xpath(
                 "//button[contains(text(),'Unfollow')]")
             unfollow_btn.click()
             self.text_to_speech("Unfollowed {}".format(u_name), False)
             time.sleep(random.randint(5, 20))
             self.db_conn.execute('''UPDATE instaDB
                  SET following=0 where user_id="{}";'''.format(u_name))
-            
+
         except:
             self.text_to_speech("ERR: while unfollowing {}".format(u_name))
 
@@ -188,7 +280,7 @@ class InstaOps:
         # return user_name from insta
 
         self.driver.get("https://www.instagram.com/{}/".format(usr_id))
-        usr_name=self.driver.find_elements_by_tag_name('h1')[1].text
+        usr_name = self.driver.find_elements_by_tag_name('h1')[1].text
         self.db_conn.execute('''UPDATE creds SET user_name="{}"
              where user_id="{}"'''.format(usr_name, self.user_id))
         return usr_name
@@ -197,12 +289,12 @@ class InstaOps:
         # return number of followers/following
 
         self.driver.get(btn_link)
-        btn_href=btn_link
-        links=self.driver.find_elements_by_tag_name("a")
-        post_count=[
+        btn_href = btn_link
+        links = self.driver.find_elements_by_tag_name("a")
+        post_count = [
             href for href in links if btn_href in href.get_attribute("href")][0].text
         # need to handle for 1k,1M and further
-        int_count=int(post_count.split(' ')[0].replace(",", ""))
+        int_count = int(post_count.split(' ')[0].replace(",", ""))
         return int_count
 
     def __get_list_of(self, attr_name="followers"):
@@ -212,31 +304,31 @@ class InstaOps:
         3. return list
         """
 
-        attr_count=self.__get_number_of(
+        attr_count = self.__get_number_of(
             "https://www.instagram.com/{}/{}/".format(self.user_id, attr_name))
         self.text_to_speech("{} count is {}".format(attr_name, attr_count))
 
-        attr_btn=self.driver.find_element_by_xpath(
+        attr_btn = self.driver.find_element_by_xpath(
             "//a[contains(@href,'/{}/{}/')]".format(self.user_id, attr_name))
         attr_btn.click()
         self.text_to_speech(
             "Scraping {} list, this operation will take time".format(attr_name), False)
         time.sleep(5)
 
-        li_cnt=0
-        prev_cnt=0
-        ul_list=self.driver.find_elements_by_tag_name("ul")
+        li_cnt = 0
+        prev_cnt = 0
+        ul_list = self.driver.find_elements_by_tag_name("ul")
 
-        exit_counter=0
+        exit_counter = 0
         while(li_cnt <= attr_count and exit_counter <= 5):
-            prev_cnt=li_cnt
-            li_list=ul_list[-1].find_elements_by_tag_name("li")
+            prev_cnt = li_cnt
+            li_list = ul_list[-1].find_elements_by_tag_name("li")
             try:
                 li_list[-1].location_once_scrolled_into_view
             except:
                 li_list[-2].location_once_scrolled_into_view
 
-            li_cnt=len(li_list)
+            li_cnt = len(li_list)
 
             if li_cnt == prev_cnt:
                 # self.text_to_speech(
@@ -244,15 +336,15 @@ class InstaOps:
                 exit_counter += 1
                 time.sleep(random.randint(3, 6))
             else:
-                exit_counter=0
+                exit_counter = 0
 
         self.text_to_speech(
             "Operation complete, formatting the results", False)
 
-        _list=[]
+        _list = []
         for i in li_list:
             try:
-                tmp_ele=i.find_element_by_tag_name("a")
+                tmp_ele = i.find_element_by_tag_name("a")
                 _list.append(self.__format_userid(
                     tmp_ele.get_attribute("href")))
             except:
