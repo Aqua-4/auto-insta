@@ -154,6 +154,7 @@ class InstaOps:
             self.text_to_speech("User {} acc does not exist anymore".format(u_name),False)
         else:
             self.__click_unfollow(u_name)
+            self.db_conn.commit()
 
 
 # --------------____________________________Private Func_________________________-------------------
