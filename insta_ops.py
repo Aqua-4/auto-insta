@@ -36,7 +36,7 @@ class InstaOps:
             "select chromedata from creds", self.db_conn).chromedata[0]
         options.add_argument("--start-maximized")
         # options.add_argument("--headless")
-        
+
         if chromedata:
             options.add_argument('user-data-dir={}'.format(chromedata))
 
@@ -49,10 +49,11 @@ class InstaOps:
         self.engine = pyttsx3.init()
         self.text_to_speech("Insta Bot has been initialized")
 
-    def __del__(self):   
-        self.text_to_speech("Shutting Down Instagram Bot",False)
+    def __del__(self):
+        self.text_to_speech("Shutting Down Instagram Bot", False)
         self.driver.quit()
-        self.text_to_speech("Bot has been powered off, goodbye {}".format(self.user_name),False)
+        self.text_to_speech(
+            "Bot has been powered off, goodbye {}".format(self.user_name), False)
 
     def account_init(self):
         """
@@ -87,11 +88,15 @@ class InstaOps:
         3. navigate through posts collecting user_names
         4. smart_like(username)
         """
-        users = self._extract_users_from_tile()
+        # get 3 times the user_name incase of worst case scenario
+        users = self._extract_users_from_tile(user_count*3)
         for user in users:
             user_meta = self._user_meta(user)
-            
-            self._like_userpost(user, per_user_like)
+            if self.__predict(user_meta):
+                self._like_userpost(user, per_user_like)
+            else:
+                self.text_to_speech(
+                    "Algorithm predicts that user {} won't follow back".format(user), False)
 
     def unfollow_unfollowers(self):
         """
@@ -113,7 +118,7 @@ class InstaOps:
             "https://www.instagram.com/{}/following/".format(self.user_id))
         self._session_stats(self.follower_cnt, self.following_cnt)
 
-    def tagsearch_n_open(self, tag_name):
+    def tagsearch_n_open(self, tag_name="#parashar"):
         """
         1. search for a hash-tag
         2. open the first photo tile
@@ -232,7 +237,7 @@ class InstaOps:
         total_posts = self.__get_posts_count()
         if count == 0:
             count = total_posts
-        
+
         try:
             self.__open_first_userpost()
 
@@ -252,12 +257,20 @@ class InstaOps:
 
         except:
             self.text_to_speech("Like Userpost Failed")
-        self.text_to_speech("Liked {} posts for user {}".format(counter,user))
+        self.text_to_speech("Liked {} posts for user {}".format(counter, user))
 
 
 # --------------____________________________Private Func_________________________-------------------
 
-    def __calc_
+
+    def __predict(self, user_meta):
+        # Add logic to calcute probability of user following you back
+        # return Boolean
+        try:
+            percent = user_meta['following']/user_meta['followers']*100
+            return (percent > 55)
+        except:
+            return False
 
     def __click_like(self):
         # click like button inside dialog box
@@ -327,19 +340,24 @@ class InstaOps:
 
     def __get_number_of(self, btn_link):
         # return number of followers/following
-        if self.driver.current_url != btn_link.replace(btn_link.split("/")[-1], ""):
+        if self.driver.current_url != btn_link.replace("{}/".format(btn_link.split("/")[-2]), ""):
             self.driver.get(btn_link)
         btn_href = btn_link
         links = self.driver.find_elements_by_tag_name("a")
-        post_count = [
-            href for href in links if btn_href in href.get_attribute("href")][0].text
+        try:
+            _count = [
+                href for href in links if btn_href in href.get_attribute("href")][0].text
+            count = _count.split(' ')[0].replace(",", "")
+        except:
+            count = 0
         # need to handle for 1k,1M and further
-        int_count = int(post_count.split(' ')[0].replace(",", ""))
-        return int_count
+        return self.__insta_number_conversion(count)
 
     def __get_posts_count(self):
         # return total posts by user
-        return int(self.driver.find_element_by_xpath('//li/span/span').text.replace(",", ""))
+        count = self.driver.find_element_by_xpath(
+            '//li/span/span').text.replace(",", "")
+        return self.__insta_number_conversion(count)
 
     def __get_list_of(self, attr_name="followers"):
         """
@@ -405,6 +423,16 @@ class InstaOps:
         else:
             return "https://www.instagram.com/{}/".format(link)
 
+    def __insta_number_conversion(self, number):
+        if type(number)!=int:
+            if "k" in number:
+                return int(float(number.replace("k", ""))*1000)
+            elif "m" in number:
+                return int(float(number.replace("m", ""))*1000000)
+            else:
+                return int(number)
+        else:
+            return number
 # --------------______________________________Utils______________________________-------------------
 
     def text_to_speech(self, text_string="Test", bool_print=True, bool_speak=True):
