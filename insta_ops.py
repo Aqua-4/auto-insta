@@ -74,59 +74,15 @@ class InstaOps:
 
     def smart_like(self, user_count=2, per_user_like=3):
         """
-        1. navigate to random hashtag from list
+        1. navigate to random hashtag from list __search_tag("#tag")
         2. open "recently posted first tile"
         3. navigate through posts collecting user_names
         4. smart_like(username)
         """
-        users = []
-        while len(users) < user_count:
-            try:
-                user_name = self.driver.find_element_by_xpath(
-                    '/html/body/div[3]/div/div[2]/div/article/header/div[2]/div[1]/div[1]/h2/a')
-                users.append(user_name.text)
-            except:
-                print("unable to load")
-            click_right = self.driver.find_element_by_xpath('/html/body')
-            click_right.send_keys(Keys.RIGHT)
-            users = list(set(users))
-            time.sleep(random.randint(4, 10))
+        users = self._extract_users_from_tile()
         for user in users:
-            liked_url = []
-
-            self.driver.get("https://www.instagram.com/{}/".format(user))
-
-            time.sleep(random.randint(10, 20))
-
-            # open first tile
-            try:
-                first_tile = self.driver.find_element_by_tag_name("article")
-                first_tile.find_element_by_tag_name("a").click()
-            except:
-                print("ERR: No First Tile")
-
-            time.sleep(random.randint(4, 10))
-            err_counter = 0
-            counter = 0
-            while counter < per_user_like and err_counter < 5:
-                try:
-                    like_btn = self.driver.find_element_by_tag_name("section")
-                    like_btn.find_element_by_xpath(
-                        "//span[@aria-label='Like']").click()
-                    err_counter = 0
-                except:
-                    err_counter += 1
-                    print("ERR: failed to like")
-                try:
-                    self.driver.find_element_by_xpath(
-                        '/html/body').send_keys(Keys.RIGHT)
-                    time.sleep(random.randint(4, 10))
-                except:
-                    err_counter += 1
-                    print("ERR: unable to load next post")
-                time.sleep(random.randint(4, 10))
-                liked_url.append(self.driver.current_url)
-                counter += 1
+            user_meta = self._user_meta(user)
+            self._like_userpost(user, per_user_like)
 
     def unfollow_unfollowers(self):
         """
@@ -232,9 +188,78 @@ class InstaOps:
             self.__click_unfollow(u_name)
             self.db_conn.commit()
 
+    def _extract_users_from_tile(self, user_count=20):
+        # return list of usernames
+        _list = []
+        while len(_list) < user_count:
+            try:
+                _list.append(self.__get_tile_username())
+            except:
+                self.text_to_speech("Cannot get user_name")
+            click_right = self.driver.find_element_by_xpath('/html/body')
+            click_right.send_keys(Keys.RIGHT)
+            # unique list of user_names
+            _list = list(set(_list))
+            time.sleep(random.randint(4, 10))
+        return _list
+
+    def _user_meta(self, u_name):
+        meta = {}
+        user_url = self.__format_userid(u_name)
+        meta['followers'] = self.__get_number_of(
+            "{}followers/".format(user_url))
+        meta['following'] = self.__get_number_of(
+            "{}following/".format(user_url))
+        meta['posts'] = self.__get_posts_count()
+        return meta
+
+    def _like_userpost(self, user, count=0):
+        self.driver.get(self.__format_userid(user))
+        time.sleep(random.randint(10, 20))
+        total_posts = self.__get_posts_count()
+        if count == 0:
+            count = total_posts
+        
+        try:
+            self.__open_first_userpost()
+
+            err_counter = 0
+            counter = 0
+            while counter < count and counter < total_posts and err_counter < 20:
+                try:
+                    self.__click_like()
+                    self.driver.find_element_by_xpath(
+                        '/html/body').send_keys(Keys.RIGHT)
+                    err_counter = 0
+                except:
+                    err_counter += 1
+                    self.text_to_speech("Unable to load next post")
+                time.sleep(random.randint(4, 10))
+                counter += 1
+
+        except:
+            self.text_to_speech("Cannot open user post")
+
 
 # --------------____________________________Private Func_________________________-------------------
 
+
+    def __click_like(self):
+        # click like button inside dialog box
+        dialog = self.driver.find_element_by_xpath("//div/div[@role='dialog']")
+        dialog.find_element_by_xpath(
+            "//span[@aria-label='Like']").click()
+
+    def __get_tile_username(self):
+        # return user_id from dialogbox
+        dialog = self.driver.find_element_by_xpath("//div/div[@role='dialog']")
+        return dialog.find_element_by_tag_name("h2").text
+
+    def __open_first_userpost(self):
+        # open first user post
+        first_tile = self.driver.find_element_by_tag_name("article")
+        first_tile.find_element_by_tag_name("a").click()
+        time.sleep(random.randint(4, 10))
 
     def __search_tag(self, tag_name):
         # search insta for tag
@@ -287,8 +312,8 @@ class InstaOps:
 
     def __get_number_of(self, btn_link):
         # return number of followers/following
-
-        self.driver.get(btn_link)
+        if self.driver.current_url != btn_link.replace(btn_link.split("/")[-1], ""):
+            self.driver.get(btn_link)
         btn_href = btn_link
         links = self.driver.find_elements_by_tag_name("a")
         post_count = [
@@ -296,6 +321,10 @@ class InstaOps:
         # need to handle for 1k,1M and further
         int_count = int(post_count.split(' ')[0].replace(",", ""))
         return int_count
+
+    def __get_posts_count(self):
+        # return total posts by user
+        return int(self.driver.find_element_by_xpath('//li/span/span').text.replace(",", ""))
 
     def __get_list_of(self, attr_name="followers"):
         """
