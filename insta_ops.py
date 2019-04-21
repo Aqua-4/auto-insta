@@ -35,6 +35,8 @@ class InstaOps:
         chromedata = pd.read_sql(
             "select chromedata from creds", self.db_conn).chromedata[0]
         options.add_argument("--start-maximized")
+        # options.add_argument("--headless")
+        
         if chromedata:
             options.add_argument('user-data-dir={}'.format(chromedata))
 
@@ -45,6 +47,12 @@ class InstaOps:
         self.driver = webdriver.Chrome(
             executable_path=exec_path, chrome_options=options)
         self.engine = pyttsx3.init()
+        self.text_to_speech("Insta Bot has been initialized")
+
+    def __del__(self):   
+        self.text_to_speech("Shutting Down Instagram Bot",False)
+        self.driver.quit()
+        self.text_to_speech("Bot has been powered off, goodbye {}".format(self.user_name),False)
 
     def account_init(self):
         """
@@ -82,6 +90,7 @@ class InstaOps:
         users = self._extract_users_from_tile()
         for user in users:
             user_meta = self._user_meta(user)
+            
             self._like_userpost(user, per_user_like)
 
     def unfollow_unfollowers(self):
@@ -214,6 +223,10 @@ class InstaOps:
         return meta
 
     def _like_userpost(self, user, count=0):
+        """
+        1. Navigate to user profile
+        2. Like n number of posts
+        """
         self.driver.get(self.__format_userid(user))
         time.sleep(random.randint(10, 20))
         total_posts = self.__get_posts_count()
@@ -225,7 +238,7 @@ class InstaOps:
 
             err_counter = 0
             counter = 0
-            while counter < count and counter < total_posts and err_counter < 20:
+            while counter < count and counter < total_posts and err_counter < 5:
                 try:
                     self.__click_like()
                     self.driver.find_element_by_xpath(
@@ -233,16 +246,18 @@ class InstaOps:
                     err_counter = 0
                 except:
                     err_counter += 1
-                    self.text_to_speech("Unable to load next post")
+                    self.text_to_speech("Failed to like this post")
                 time.sleep(random.randint(4, 10))
                 counter += 1
 
         except:
-            self.text_to_speech("Cannot open user post")
+            self.text_to_speech("Like Userpost Failed")
+        self.text_to_speech("Liked {} posts for user {}".format(counter,user))
 
 
 # --------------____________________________Private Func_________________________-------------------
 
+    def __calc_
 
     def __click_like(self):
         # click like button inside dialog box
