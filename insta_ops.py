@@ -162,8 +162,6 @@ class InstaOps:
     def __click_unfollow(self, u_name):
         # click unfollow and update in DB
         try:
-            self.db_conn.execute('''UPDATE instaDB
-                 SET following=0 where user_id="{}";'''.format(u_name))
             
             follow_btn=self.driver.find_element_by_xpath(
                 "//button[contains(text(),'Following')]")
@@ -173,7 +171,10 @@ class InstaOps:
                 "//button[contains(text(),'Unfollow')]")
             unfollow_btn.click()
             self.text_to_speech("Unfollowed {}".format(u_name), False)
-            time.sleep(random.randint(20, 40))
+            time.sleep(random.randint(5, 20))
+            self.db_conn.execute('''UPDATE instaDB
+                 SET following=0 where user_id="{}";'''.format(u_name))
+            
         except:
             self.text_to_speech("ERR: while unfollowing {}".format(u_name))
 
