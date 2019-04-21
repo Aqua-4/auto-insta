@@ -66,9 +66,8 @@ class InstaOps:
             "https://www.instagram.com/{}/followers/".format(self.user_id))
         self.following_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/following/".format(self.user_id))
-        # self._session_stats(self.follower_cnt, self.following_cnt, True)
-        # self.__get_list_of("followers")
-
+        self._session_stats(self.follower_cnt, self.following_cnt, True)
+        
     def sync_db(self):
         self._sync_db_col("followers")
         self._sync_db_col("following")
@@ -86,6 +85,12 @@ class InstaOps:
         for traitor in traitors:
             self._unfollow_user(traitor)
         self.text_to_speech("Unfollowed unfollowers completed")
+        self.follower_cnt = self.__get_number_of(
+            "https://www.instagram.com/{}/followers/".format(self.user_id))
+        self.following_cnt = self.__get_number_of(
+            "https://www.instagram.com/{}/following/".format(self.user_id))
+        self._session_stats(self.follower_cnt, self.following_cnt)
+        
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
