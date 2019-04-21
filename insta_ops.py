@@ -350,7 +350,6 @@ class InstaOps:
             count = _count.split(' ')[0].replace(",", "")
         except:
             count = 0
-        # need to handle for 1k,1M and further
         return self.__insta_number_conversion(count)
 
     def __get_posts_count(self):
@@ -424,7 +423,7 @@ class InstaOps:
             return "https://www.instagram.com/{}/".format(link)
 
     def __insta_number_conversion(self, number):
-        if type(number)!=int:
+        if type(number) != int:
             if "k" in number:
                 return int(float(number.replace("k", ""))*1000)
             elif "m" in number:
