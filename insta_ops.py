@@ -50,6 +50,8 @@ class InstaOps:
         self.text_to_speech("Insta Bot has been initialized")
 
     def __del__(self):
+        self.db_conn.commit()
+        self.db_conn.close()
         self.text_to_speech("Shutting Down Instagram Bot", False)
         self.driver.quit()
         self.text_to_speech(
@@ -66,6 +68,8 @@ class InstaOps:
             "select user_name from creds", self.db_conn).user_name[0]
         if not usr_name:
             self.user_name = self.__get_usr_name(self.user_id)
+        else:
+            self.user_name = usr_name
 
         login_greet = "Welcome {}, you have been logged into your account and ".format(
             self.user_name)
@@ -81,7 +85,7 @@ class InstaOps:
         self._sync_db_col("followers")
         self._sync_db_col("following")
 
-    def smart_like(self, user_count=2, per_user_like=3):
+    def smart_like(self, user_count=6, per_user_like=4):
         """
         1. navigate to random hashtag from list __search_tag("#tag")
         2. open "recently posted first tile"
@@ -91,12 +95,17 @@ class InstaOps:
         # get 3 times the user_name incase of worst case scenario
         users = self._extract_users_from_tile(user_count*3)
         for user in users:
-            user_meta = self._user_meta(user)
-            if self.__predict(user_meta):
-                self._like_userpost(user, per_user_like)
-            else:
-                self.text_to_speech(
-                    "Algorithm predicts that user {} won't follow back".format(user), False)
+            try:
+                user_meta = self._user_meta(user)
+                if self.__predict(user_meta):
+                    self._like_userpost(user, per_user_like)
+                else:
+                    self.text_to_speech(
+                        "Algorithm predicts that user {} won't follow back".format(user), False)
+            except:
+                print("xxxxxxxx-------Edge case occurred------xxxxxxxx",
+                      self.driver.current_url)
+                self.account_init()
 
     def unfollow_unfollowers(self):
         """
@@ -200,7 +209,6 @@ class InstaOps:
                 "User {} acc does not exist anymore".format(u_name), False)
         else:
             self.__click_unfollow(u_name)
-            self.db_conn.commit()
 
     def _extract_users_from_tile(self, user_count=20):
         # return list of usernames
@@ -223,14 +231,15 @@ class InstaOps:
         posts = user_meta['posts']
         if pd.read_sql('select * from instaDB where user_id="{}"'.format(user), self.db_conn).empty:
             self.db_conn.execute('''INSERT INTO
-             instaDB(user_id,followers_cnt,following_cnt,posts,acc_status) Values
-             ("{usr}",{followers},{following},{posts},1);
+             instaDB(user_id,followers_cnt,following_cnt,posts,acc_status,bot_lead) Values
+             ("{usr}",{followers},{following},{posts},1,1);
             '''.format(usr=user, followers=foc, following=fic, posts=posts))
         else:
             self.db_conn.execute('''UPDATE instaDB
-             SET following_cnt = {following}, followers_cnt = {followers},
-             posts = {posts}, acc_status = 1 WHERE user_id = "{usr}";
+             SET following_cnt={following}, followers_cnt={followers},
+             posts={posts}, acc_status=1, bot_lead=1 WHERE user_id="{usr}";
             '''.format(usr=user, followers=foc, following=fic, posts=posts))
+        self.db_conn.commit()
 
     def _user_meta(self, u_name):
         meta = {}
@@ -247,7 +256,8 @@ class InstaOps:
         1. Navigate to user profile
         2. Like n number of posts
         """
-        self.driver.get(self.__format_userid(user))
+        if self.driver.current_url != self.__format_userid(user):
+            self.driver.get(self.__format_userid(user))
         time.sleep(random.randint(10, 20))
         total_posts = self.__get_posts_count()
         if count == 0:
@@ -261,6 +271,7 @@ class InstaOps:
             while counter < count and counter < total_posts and err_counter < 5:
                 try:
                     self.__click_like()
+                    time.sleep(random.randint(2, 4))
                     self.driver.find_element_by_xpath(
                         '/html/body').send_keys(Keys.RIGHT)
                     err_counter = 0
@@ -340,7 +351,7 @@ class InstaOps:
             time.sleep(random.randint(5, 20))
             self.db_conn.execute('''UPDATE instaDB
                  SET following=0 where user_id="{}";'''.format(u_name))
-
+            self.db_conn.commit()
         except:
             self.text_to_speech("ERR: while unfollowing {}".format(u_name))
 
@@ -350,12 +361,14 @@ class InstaOps:
         usr_name = self.driver.find_elements_by_tag_name('h1')[1].text
         self.db_conn.execute('''UPDATE creds SET user_name="{}"
              where user_id="{}"'''.format(usr_name, self.user_id))
+        self.db_conn.commit()
         return usr_name
 
     def __get_number_of(self, btn_link):
         # return number of followers/following
         if self.driver.current_url != btn_link.replace("{}/".format(btn_link.split("/")[-2]), ""):
-            self.driver.get(btn_link)
+            self.driver.get(btn_link.replace(
+                "{}/".format(btn_link.split("/")[-2]), ""))
         btn_href = btn_link
         links = self.driver.find_elements_by_tag_name("a")
         try:
