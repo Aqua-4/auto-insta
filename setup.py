@@ -10,6 +10,9 @@ conn.execute('''CREATE TABLE instaDB
          (user_id VARCHAR(30) PRIMARY KEY NOT NULL,
          followers INT DEFAULT 0,
          following INT DEFAULT 0,
+         posts INT,
+         followers_cnt INT,
+         following_cnt INT,
          acc_status INT DEFAULT 1,
          bot_lead INT DEFAULT 0,
          timestamp DATE
