@@ -217,6 +217,21 @@ class InstaOps:
             time.sleep(random.randint(4, 10))
         return _list
 
+    def _update_meta(self, user, user_meta):
+        foc = user_meta['followers']
+        fic = user_meta['following']
+        posts = user_meta['posts']
+        if pd.read_sql('select * from instaDB where user_id="{}"'.format(user), self.db_conn).empty:
+            self.db_conn.execute('''INSERT INTO
+             instaDB(user_id,followers_cnt,following_cnt,posts,acc_status) Values
+             ("{usr}",{followers},{following},{posts},1);
+            '''.format(usr=user, followers=foc, following=fic, posts=posts))
+        else:
+            self.db_conn.execute('''UPDATE instaDB
+             SET following_cnt = {following}, followers_cnt = {followers},
+             posts = {posts}, acc_status = 1 WHERE user_id = "{usr}";
+            '''.format(usr=user, followers=foc, following=fic, posts=posts))
+
     def _user_meta(self, u_name):
         meta = {}
         user_url = self.__format_userid(u_name)
@@ -331,7 +346,6 @@ class InstaOps:
 
     def __get_usr_name(self, usr_id):
         # return user_name from insta
-
         self.driver.get("https://www.instagram.com/{}/".format(usr_id))
         usr_name = self.driver.find_elements_by_tag_name('h1')[1].text
         self.db_conn.execute('''UPDATE creds SET user_name="{}"
