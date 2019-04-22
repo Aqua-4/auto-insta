@@ -97,6 +97,7 @@ class InstaOps:
         for user in users:
             try:
                 user_meta = self._user_meta(user)
+                self._update_meta(user, user_meta)
                 if self.__predict(user_meta):
                     self._like_userpost(user, per_user_like)
                 else:
@@ -141,7 +142,6 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
-
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -287,7 +287,6 @@ class InstaOps:
 
 
 # --------------____________________________Private Func_________________________-------------------
-
 
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back
