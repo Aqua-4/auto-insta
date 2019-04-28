@@ -297,7 +297,7 @@ class InstaOps:
         try:
             self.__click_follow()
             self.db_conn.execute('''UPDATE instaDB
-                 SET following=1 where user_id="{}";'''.format(u_name))
+                 SET following=1 where user_id="{}";'''.format(user))
         except:
             self.text_to_speech(
                 "click_TO_FOLLOW error while following {}".format(user))
