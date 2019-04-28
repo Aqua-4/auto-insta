@@ -85,12 +85,12 @@ class InstaOps:
         self._sync_db_col("followers")
         self._sync_db_col("following")
 
-    def smart_like(self, user_count=6, per_user_like=4):
+    def smart_activity(self, user_count=6, per_user_like=4):
         """
         1. navigate to random hashtag from list __search_tag("#tag")
         2. open "recently posted first tile"
         3. navigate through posts collecting user_names
-        4. smart_like(username)
+        4. follow and like  if bot predicts that user will followback
         """
         # get 3 times the user_name incase of worst case scenario
         users = self._extract_users_from_tile(user_count*3)
@@ -99,6 +99,7 @@ class InstaOps:
                 user_meta = self._user_meta(user)
                 self._update_meta(user, user_meta)
                 if self.__predict(user_meta):
+                    self._follow_user(user)
                     self._like_userpost(user, per_user_like)
                 else:
                     self.text_to_speech(
@@ -142,6 +143,7 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -285,7 +287,20 @@ class InstaOps:
             self.text_to_speech("Like Userpost Failed")
         self.text_to_speech("Liked {} posts for user {}".format(counter, user))
 
-
+    def _follow_user(self, user):
+        """
+        1. open user_profile
+        2. click on follow
+        """
+        if self.driver.current_url != self.__format_userid(user):
+            self.driver.get(self.__format_userid(user))
+        try:
+            self.__click_follow()
+            self.db_conn.execute('''UPDATE instaDB
+                 SET following=1 where user_id="{}";'''.format(u_name))
+        except:
+            self.text_to_speech(
+                "click_TO_FOLLOW error while following {}".format(user))
 # --------------____________________________Private Func_________________________-------------------
 
     def __predict(self, user_meta):
@@ -302,6 +317,11 @@ class InstaOps:
         dialog = self.driver.find_element_by_xpath("//div/div[@role='dialog']")
         dialog.find_element_by_xpath(
             "//span[@aria-label='Like']").click()
+
+    def __click_follow(self):
+        # click follow btn
+        self.driver.find_element_by_xpath(
+            "//span/button[contains(text(),'Follow')]").click()
 
     def __get_tile_username(self):
         # return user_id from dialogbox
