@@ -37,6 +37,7 @@ class InstaOps:
         chromedata = pd.read_sql(
             "select chromedata from creds", self.db_conn).chromedata[0]
         options.add_argument("--start-maximized")
+        options.add_argument("--disable-infobars")
         # options.add_argument("--headless")
 
         if chromedata:
@@ -47,8 +48,9 @@ class InstaOps:
             exec_path = "./chromedriver"
 
         # load the model if exists
-        if os.path.isfile('classifier_mod.pkl'):
+        if os.path.isfile('classifier_mod.pkl') and os.path.isfile('sc_X_mod.pkl'):
             self.classifier_mod = joblib.load('classifier_mod.pkl')
+            self.sc_X = joblib.load('sc_X_mod.pkl')
         else:
             self.classifier_mod = False
 
@@ -90,17 +92,19 @@ class InstaOps:
         self._session_stats(self.follower_cnt, self.following_cnt, True)
 
     def sync_db(self):
+        # update the user profile
         self._sync_db_col("followers")
         self._sync_db_col("following")
 
     def smart_activity(self, user_count=6, per_user_like=4):
         """
-        1. navigate to random hashtag from list __search_tag("#tag")
-        2. open "recently posted first tile"
-        3. navigate through posts collecting user_names
-        4. follow and like  if bot predicts that user will followback
+        1. get list of users
+        2. update meta for user
+        3. predict if user will follow_back
+        4. follow and like if precited that user will follow
         """
         # get 3 times the user_name incase of worst case scenario
+        usr_counter = 0
         users = self._extract_users_from_tile(user_count*3)
         for user in users:
             try:
@@ -109,9 +113,12 @@ class InstaOps:
                 if self.__predict(user_meta):
                     self._follow_user(user)
                     self._like_userpost(user, per_user_like)
+                    usr_counter += 1
                 else:
                     self.text_to_speech(
                         "Algorithm predicts that user {} won't follow back".format(user), False)
+                if usr_counter > user_count:
+                    break
             except:
                 print("xxxxxxxx-------Edge case occurred------xxxxxxxx",
                       self.driver.current_url)
@@ -315,13 +322,13 @@ class InstaOps:
         # return Boolean
         try:
             if self.classifier_mod:
-                _p = self.classifier_mod.predict(sc_X.transform(
+                _p = self.classifier_mod.predict(self.sc_X.transform(
                     [[user_meta['followers'], user_meta['following']]]))
                 return bool(_p)
             else:
                 percent = user_meta['following']/user_meta['followers']*100
                 return (percent > 55)
-        except:
+        except ZeroDivisionError:
             return False
 
     def __click_like(self):
