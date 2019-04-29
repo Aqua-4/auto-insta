@@ -16,6 +16,8 @@ import sqlite3
 import time
 import pyttsx3
 import platform
+import os.path
+from sklearn.externals import joblib
 
 
 class InstaOps:
@@ -43,6 +45,12 @@ class InstaOps:
         exec_path = "chromedriver"
         if platform.system() == 'Linux':
             exec_path = "./chromedriver"
+
+        # load the model if exists
+        if os.path.isfile('classifier_mod.pkl'):
+            self.classifier_mod = joblib.load('classifier_mod.pkl')
+        else:
+            self.classifier_mod = False
 
         self.driver = webdriver.Chrome(
             executable_path=exec_path, chrome_options=options)
@@ -143,7 +151,6 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
-
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -307,8 +314,13 @@ class InstaOps:
         # Add logic to calcute probability of user following you back
         # return Boolean
         try:
-            percent = user_meta['following']/user_meta['followers']*100
-            return (percent > 55)
+            if self.classifier_mod:
+                _p = self.classifier_mod.predict(sc_X.transform(
+                    [[user_meta['followers'], user_meta['following']]]))
+                return bool(_p)
+            else:
+                percent = user_meta['following']/user_meta['followers']*100
+                return (percent > 55)
         except:
             return False
 
