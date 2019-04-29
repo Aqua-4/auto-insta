@@ -16,8 +16,9 @@ conn.execute('''INSERT INTO creds (user_id,passwd)
 print("credentials have been udpated")
 print('Do you want to update "Chrome Data Location"')
 if input("press y or n:-").lower() == 'y':
+    path_loc = input("Path Location:")
     conn.execute('UPDATE creds SET chromedata="{}" where user_id="{}"'.format(
-        input("Path Location:"), user_id))
+        path_loc.replace("/", "//"), user_id))
     print("Chrome Location has been Updated")
 
 
