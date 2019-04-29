@@ -11,7 +11,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
 import datetime
-import random
+from random import randint
 import sqlite3
 import time
 import pyttsx3
@@ -159,6 +159,7 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
+
     def _insta_login(self):
         # enter credentials if not logged in
         self.driver.get(
@@ -217,7 +218,7 @@ class InstaOps:
         # goto user_profile and unfollow
         insta_link = self.__format_userid(u_name)
         self.driver.get(insta_link)
-        time.sleep(random.randint(5, 10))
+        time.sleep(randint(5, 10))
         if len(self.driver.find_elements_by_tag_name("h2")):
             self.db_conn.execute('''UPDATE instaDB SET acc_status=0
              where user_id="{}"'''.format(u_name))
@@ -238,7 +239,7 @@ class InstaOps:
             click_right.send_keys(Keys.RIGHT)
             # unique list of user_names
             _list = list(set(_list))
-            time.sleep(random.randint(4, 10))
+            time.sleep(randint(4, 10))
         return _list
 
     def _update_meta(self, user, user_meta):
@@ -274,7 +275,7 @@ class InstaOps:
         """
         if self.driver.current_url != self.__format_userid(user):
             self.driver.get(self.__format_userid(user))
-        time.sleep(random.randint(10, 20))
+        time.sleep(randint(10, 20))
         total_posts = self.__get_posts_count()
         if count == 0:
             count = total_posts
@@ -287,14 +288,14 @@ class InstaOps:
             while counter < count and counter < total_posts and err_counter < 5:
                 try:
                     self.__click_like()
-                    time.sleep(random.randint(2, 4))
+                    time.sleep(randint(2, 4))
                     self.driver.find_element_by_xpath(
                         '/html/body').send_keys(Keys.RIGHT)
                     err_counter = 0
                 except:
                     err_counter += 1
                     self.text_to_speech("Failed to like this post")
-                time.sleep(random.randint(4, 10))
+                time.sleep(randint(4, 10))
                 counter += 1
 
         except:
@@ -351,7 +352,7 @@ class InstaOps:
         # open first user post
         first_tile = self.driver.find_element_by_tag_name("article")
         first_tile.find_element_by_tag_name("a").click()
-        time.sleep(random.randint(4, 10))
+        time.sleep(randint(4, 10))
 
     def __search_tag(self, tag_name):
         # search insta for tag
@@ -386,7 +387,7 @@ class InstaOps:
                 "//button[contains(text(),'Unfollow')]")
             unfollow_btn.click()
             self.text_to_speech("Unfollowed {}".format(u_name), False)
-            time.sleep(random.randint(5, 20))
+            time.sleep(randint(5, 20))
             self.db_conn.execute('''UPDATE instaDB
                  SET following=0 where user_id="{}";'''.format(u_name))
             self.db_conn.commit()
@@ -460,7 +461,7 @@ class InstaOps:
                 # self.text_to_speech(
                 #     "Loading list, Current count is {} and will terminate in {}".format(li_cnt, exit_counter), False)
                 exit_counter += 1
-                time.sleep(random.randint(3, 6))
+                time.sleep(randint(3, 6))
             else:
                 exit_counter = 0
 
