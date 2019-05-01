@@ -22,7 +22,7 @@ from sklearn.externals import joblib
 
 class InstaOps:
 
-    def __init__(self):
+    def __init__(self, headless=True):
         """
         1. setup db_connection
         2. get all user info
@@ -38,7 +38,8 @@ class InstaOps:
             "select chromedata from creds", self.db_conn).chromedata[0]
         options.add_argument("--start-maximized")
         options.add_argument("--disable-infobars")
-        # options.add_argument("--headless")
+        if headless:
+            options.add_argument("--headless")
 
         if chromedata:
             options.add_argument('user-data-dir={}'.format(chromedata))
@@ -112,7 +113,7 @@ class InstaOps:
                 self._update_meta(user, user_meta)
                 if self.__predict(user_meta):
                     self._follow_user(user)
-                    self._like_userpost(user, per_user_like)
+                    self._like_userpost(user, randint(1, per_user_like))
                     usr_counter += 1
                 else:
                     self.text_to_speech(
@@ -123,6 +124,17 @@ class InstaOps:
                 print("xxxxxxxx-------Edge case occurred------xxxxxxxx",
                       self.driver.current_url)
                 self.account_init()
+
+    def unfollow_bot_leads(self):
+        # unfollow users that don't follow back and were followed by this bot
+        self.text_to_speech("Unfollowing users followed by bot")
+        traitors = list(pd.read_sql("""
+        select user_id from instaDb where
+         bot_lead=1 and following=1 and followers=0;""", self.db_conn).user_id)
+        for usr in traitors:
+            self._unfollow_user(usr)
+        self.text_to_speech("Unfollowed users that don't follow back")
+
 
     def unfollow_unfollowers(self):
         """
@@ -226,6 +238,8 @@ class InstaOps:
                 "User {} acc does not exist anymore".format(u_name), False)
         else:
             self.__click_unfollow(u_name)
+            self.db_conn.execute('''UPDATE instaDB SET following=0
+             where user_id="{}"'''.format(u_name))
 
     def _extract_users_from_tile(self, user_count=20):
         # return list of usernames
@@ -277,6 +291,7 @@ class InstaOps:
             self.driver.get(self.__format_userid(user))
         time.sleep(randint(10, 20))
         total_posts = self.__get_posts_count()
+        # like all posts
         if count == 0:
             count = total_posts
 
