@@ -135,7 +135,6 @@ class InstaOps:
             self._unfollow_user(usr)
         self.text_to_speech("Unfollowed users that don't follow back")
 
-
     def unfollow_unfollowers(self):
         """
         Unfollow people who dont follow you back
@@ -170,7 +169,6 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
-
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -331,7 +329,21 @@ class InstaOps:
         except:
             self.text_to_speech(
                 "click_TO_FOLLOW error while following {}".format(user))
+
+    def _insert_comment(self, comment):
+        #  insert comment on user post
+        self.__click_comment()
+        _txt_box = self.driver.find_element_by_xpath(
+            "//form/textarea[@aria-label='Add a comment…']")
+        _txt_box.clear()
+        _txt_box.send_keys(comment)
+        time.sleep(randint(3, 7))
+        _txt_box.send_keys(Keys.ENTER)
+        time.sleep(randint(3, 7))
+
+
 # --------------____________________________Private Func_________________________-------------------
+
 
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back
@@ -352,6 +364,12 @@ class InstaOps:
         dialog = self.driver.find_element_by_xpath("//div/div[@role='dialog']")
         dialog.find_element_by_xpath(
             "//span[@aria-label='Like']").click()
+
+    def __click_comment(self):
+        # click comment button inside dialog box
+        dialog = self.driver.find_element_by_xpath("//div/div[@role='dialog']")
+        dialog.find_element_by_xpath(
+            "//span[@aria-label='Comment']").click()
 
     def __click_follow(self):
         # click follow btn

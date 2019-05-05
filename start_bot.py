@@ -7,7 +7,7 @@ from random import randint, choice
 import time
 
 
-bot = InstaOps(False)
+bot = InstaOps()
 bot.account_init()
 
 tags = list(pd.read_csv('insta_strings.csv').hashtags)
