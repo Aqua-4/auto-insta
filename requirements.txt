@@ -1,2 +1,2 @@
 pyttsx3
-sqlite3
+pyperclip
