@@ -42,6 +42,8 @@ def driver_file_ops():
     driver_zip = zipfile.ZipFile(CHROME_DRIVER_ZIP)
     driver_zip.extractall()
     os.remove(CHROME_DRIVER_ZIP)
+    if SYS_TYPE == 'Linux':
+        subprocess.call(['chmod', '7771', 'chromedriver'])
 
 
 check_selenium()
