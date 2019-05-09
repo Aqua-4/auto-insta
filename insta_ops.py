@@ -109,26 +109,26 @@ class InstaOps:
         usr_counter = 0
         users = self._extract_users_from_tile(user_count*3)
         for user in users:
-            try:
-                user_meta = self._user_meta(user)
-                self._update_meta(user, user_meta)
-                if self.__predict(user_meta):
-                    self._follow_user(user)
-                    self._like_userpost(user, randint(1, per_user_like))
-                    # TODO: find the optimal place to put this
-                    if comments:
-                        self._insert_comment(choice(comments))
-                    usr_counter += 1
-                else:
-                    self.text_to_speech(
-                        "Algorithm predicts that user {} won't follow back".format(user), False)
-                if usr_counter > user_count:
-                    break
-            except Exception:
-                print("xxxxxxxx-------Edge case occurred------xxxxxxxx",
-                      self.driver.current_url)
-                self.account_init()
-                print(Exception)
+            # try:
+            user_meta = self._user_meta(user)
+            self._update_meta(user, user_meta)
+            if self.__predict(user_meta):
+                self._follow_user(user)
+                self._like_userpost(user, randint(2, per_user_like))
+                # TODO: find the optimal place to put this
+                usr_counter += 1
+                if comments:
+                    self._insert_comment(choice(comments))
+            else:
+                self.text_to_speech(
+                    "Algorithm predicts that user {} won't follow back".format(user), False)
+            if usr_counter > user_count:
+                break
+            # except Exception:
+            #     print("xxxxxxxx-------Edge case occurred------xxxxxxxx",
+            #           self.driver.current_url)
+            #     self.account_init()
+            #     print(Exception)
 
     def unfollow_bot_leads(self):
         # unfollow users that don't follow back and were followed by this bot
@@ -175,6 +175,7 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -345,16 +346,13 @@ class InstaOps:
         pyperclip.copy(comment)                 # copy
         _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
         if len(comment) > 4:
-            time.sleep(randint(len(comment)/2, len(comment)))
-        else:
-            time.sleep(randint(3, 7))
-        _txt_box.send_keys('-ai ;)')    #signature to differentiate bot comment
+            time.sleep(randint(4, 7))
+        _txt_box.send_keys(' -ai ;)')  # signature to differentiate bot comment
         _txt_box.send_keys(Keys.ENTER)
         time.sleep(randint(3, 7))
 
 
 # --------------____________________________Private Func_________________________-------------------
-
 
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back
