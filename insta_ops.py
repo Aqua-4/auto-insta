@@ -11,12 +11,13 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
 import datetime
-from random import randint
+from random import randint, choice
 import sqlite3
 import time
 import pyttsx3
 import platform
 import os.path
+import pyperclip
 from sklearn.externals import joblib
 
 
@@ -97,7 +98,7 @@ class InstaOps:
         self._sync_db_col("followers")
         self._sync_db_col("following")
 
-    def smart_activity(self, user_count=6, per_user_like=4):
+    def smart_activity(self, user_count=6, per_user_like=4, comments=[]):
         """
         1. get list of users
         2. update meta for user
@@ -114,16 +115,20 @@ class InstaOps:
                 if self.__predict(user_meta):
                     self._follow_user(user)
                     self._like_userpost(user, randint(1, per_user_like))
+                    # TODO: find the optimal place to put this
+                    if comments:
+                        self._insert_comment(choice(comments))
                     usr_counter += 1
                 else:
                     self.text_to_speech(
                         "Algorithm predicts that user {} won't follow back".format(user), False)
                 if usr_counter > user_count:
                     break
-            except:
+            except Exception:
                 print("xxxxxxxx-------Edge case occurred------xxxxxxxx",
                       self.driver.current_url)
                 self.account_init()
+                print(Exception)
 
     def unfollow_bot_leads(self):
         # unfollow users that don't follow back and were followed by this bot
@@ -160,6 +165,7 @@ class InstaOps:
         1. search for a hash-tag
         2. open the first photo tile
         """
+        self.text_to_speech("searching for tag {}".format(tag_name))
         self.__search_tag(tag_name)
         try:
             self.__open_first_tile()
@@ -336,8 +342,13 @@ class InstaOps:
         _txt_box = self.driver.find_element_by_xpath(
             "//form/textarea[@aria-label='Add a comment…']")
         _txt_box.clear()
-        _txt_box.send_keys(comment)
-        time.sleep(randint(3, 7))
+        pyperclip.copy(comment)                 # copy
+        _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
+        if len(comment) > 4:
+            time.sleep(randint(len(comment)/2, len(comment)))
+        else:
+            time.sleep(randint(3, 7))
+        _txt_box.send_keys('-ai ;)')    #signature to differentiate bot comment
         _txt_box.send_keys(Keys.ENTER)
         time.sleep(randint(3, 7))
 
