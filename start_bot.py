@@ -7,8 +7,11 @@ from random import randint, choice
 import time
 
 
-bot = InstaOps(False)
+bot = InstaOps(True)
 bot.account_init()
+
+# Uncomment to update DB
+# bot.sync_db()
 
 tags_df = pd.read_excel('insta_config.xlsx', sheet_name='hashtags')
 comm_df = pd.read_excel('insta_config.xlsx', sheet_name='comments')
