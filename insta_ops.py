@@ -181,7 +181,6 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
-
     def _insta_login(self):
         # enter credentials if not logged in
         self.driver.get(
@@ -344,21 +343,26 @@ class InstaOps:
 
     def _insert_comment(self, comment):
         #  insert comment on user post
-        self.__click_comment()
-        _txt_box = self.driver.find_element_by_xpath(
-            "//form/textarea[@aria-label='Add a comment…']")
-        _txt_box.clear()
-        pyperclip.copy(comment)                 # copy
-        _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
-        if len(comment) > 4:
-            time.sleep(randint(4, 7))
-        _txt_box.send_keys(' -ai ;)')  # signature to differentiate bot comment
-        _txt_box.send_keys(Keys.ENTER)
-        time.sleep(randint(3, 7))
-        self.text_to_speech("Commented")
+        try:
+            self.__click_comment()
+            _txt_box = self.driver.find_element_by_xpath(
+                "//form/textarea[@aria-label='Add a comment…']")
+            pyperclip.copy(comment)                 # copy
+            _txt_box.clear()
+            _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
+            if len(comment) > 4:
+                time.sleep(randint(4, 7))
+            # signature to differentiate bot comment
+            _txt_box.send_keys(' -ai ;)')
+            _txt_box.send_keys(Keys.ENTER)
+            time.sleep(randint(3, 7))
+            self.text_to_speech("Commented {}".format(comment))
+        except:
+            self.text_to_speech("Failed to insert comment")
 
 
 # --------------____________________________Private Func_________________________-------------------
+
 
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back
