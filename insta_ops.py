@@ -17,7 +17,6 @@ import time
 import pyttsx3
 import platform
 from os import path
-import pyperclip
 from sklearn.externals import joblib
 
 
@@ -56,7 +55,8 @@ class InstaOps:
             self.sc_X = joblib.load('sc_X_mod.pkl')
             self.text_to_speech("Using Machine Learning for predictions")
         else:
-            self.text_to_speech("Contact developer for Machine Learning support and improve predictions")
+            self.text_to_speech(
+                "Contact developer for Machine Learning support and improve predictions")
             self.classifier_mod = False
 
         self.driver = webdriver.Chrome(
@@ -178,7 +178,6 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
-
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -346,7 +345,7 @@ class InstaOps:
         _txt_box = self.driver.find_element_by_xpath(
             "//form/textarea[@aria-label='Add a comment…']")
         _txt_box.clear()
-        pyperclip.copy(comment)                 # copy
+        pd.DataFrame([comment]).to_clipboard(index=False,header=False) # copy
         _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
         if len(comment) > 4:
             time.sleep(randint(4, 7))
@@ -356,6 +355,7 @@ class InstaOps:
 
 
 # --------------____________________________Private Func_________________________-------------------
+
 
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back

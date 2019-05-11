@@ -6,4 +6,3 @@ xlrd
 scipy
 sklearn
 pyttsx3
-pyperclip
