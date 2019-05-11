@@ -49,6 +49,10 @@ class InstaOps:
         if platform.system() == 'Linux':
             exec_path = "./chromedriver"
 
+        self.driver = webdriver.Chrome(
+            executable_path=exec_path, chrome_options=options)
+        self.engine = pyttsx3.init()
+
         # load the model if exists
         if path.isfile('classifier_mod.pkl') and path.isfile('sc_X_mod.pkl'):
             self.classifier_mod = joblib.load('classifier_mod.pkl')
@@ -59,9 +63,6 @@ class InstaOps:
                 "Contact developer for Machine Learning support and improve predictions")
             self.classifier_mod = False
 
-        self.driver = webdriver.Chrome(
-            executable_path=exec_path, chrome_options=options)
-        self.engine = pyttsx3.init()
         self.text_to_speech("Insta Bot has been initialized")
 
     def __del__(self):
@@ -345,7 +346,7 @@ class InstaOps:
         _txt_box = self.driver.find_element_by_xpath(
             "//form/textarea[@aria-label='Add a comment…']")
         _txt_box.clear()
-        pd.DataFrame([comment]).to_clipboard(index=False,header=False) # copy
+        pd.DataFrame([comment]).to_clipboard(index=False, header=False)  # copy
         _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
         if len(comment) > 4:
             time.sleep(randint(4, 7))
