@@ -21,7 +21,6 @@ from sklearn.externals import joblib
 import time
 
 
-
 class InstaOps:
 
     def __init__(self, headless=True):
@@ -182,6 +181,7 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
+
     def _insta_login(self):
         # enter credentials if not logged in
         self.driver.get(
@@ -305,11 +305,11 @@ class InstaOps:
         if count == 0:
             count = total_posts
 
+        counter = 0
+        err_counter = 0
         try:
             self.__open_first_userpost()
 
-            err_counter = 0
-            counter = 0
             while counter < count and counter < total_posts and err_counter < 5:
                 try:
                     self.__click_like()
@@ -359,7 +359,6 @@ class InstaOps:
 
 
 # --------------____________________________Private Func_________________________-------------------
-
 
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back
