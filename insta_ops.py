@@ -16,7 +16,7 @@ import sqlite3
 import time
 import pyttsx3
 import platform
-import os.path
+from os import path
 import pyperclip
 from sklearn.externals import joblib
 
@@ -39,6 +39,7 @@ class InstaOps:
             "select chromedata from creds", self.db_conn).chromedata[0]
         options.add_argument("--start-maximized")
         options.add_argument("--disable-infobars")
+        self.headless = headless
         if headless:
             options.add_argument("--headless")
 
@@ -50,7 +51,7 @@ class InstaOps:
             exec_path = "./chromedriver"
 
         # load the model if exists
-        if os.path.isfile('classifier_mod.pkl') and os.path.isfile('sc_X_mod.pkl'):
+        if path.isfile('classifier_mod.pkl') and path.isfile('sc_X_mod.pkl'):
             self.classifier_mod = joblib.load('classifier_mod.pkl')
             self.sc_X = joblib.load('sc_X_mod.pkl')
         else:
@@ -544,7 +545,7 @@ class InstaOps:
 
     def text_to_speech(self, text_string="Test", bool_print=True, bool_speak=True):
         # setup TTS for audio output
-        if bool_print:
+        if bool_print or self.headless:
             print(text_string)
         if bool_speak:
             self.engine.say(text_string)

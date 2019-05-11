@@ -1,2 +1,9 @@
+selenium
+cython
+numpy
+pandas
+xlrd
+scipy
+sklearn
 pyttsx3
 pyperclip
