@@ -54,7 +54,9 @@ class InstaOps:
         if path.isfile('classifier_mod.pkl') and path.isfile('sc_X_mod.pkl'):
             self.classifier_mod = joblib.load('classifier_mod.pkl')
             self.sc_X = joblib.load('sc_X_mod.pkl')
+            self.text_to_speech("Using Machine Learning for predictions")
         else:
+            self.text_to_speech("Contact developer for Machine Learning support and improve predictions")
             self.classifier_mod = False
 
         self.driver = webdriver.Chrome(
