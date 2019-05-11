@@ -7,7 +7,7 @@ from random import randint, choice
 import time
 
 
-bot = InstaOps(False)
+bot = InstaOps(True)
 bot.account_init()
 
 # Uncomment to update DB
