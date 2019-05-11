@@ -11,13 +11,15 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
 import datetime
-from random import randint, choice
-import sqlite3
-import time
+from os import path
 import pyttsx3
 import platform
-from os import path
+import pyperclip
+from random import randint, choice
+import sqlite3
 from sklearn.externals import joblib
+import time
+
 
 
 class InstaOps:
@@ -346,13 +348,14 @@ class InstaOps:
         _txt_box = self.driver.find_element_by_xpath(
             "//form/textarea[@aria-label='Add a comment…']")
         _txt_box.clear()
-        pd.DataFrame([comment]).to_clipboard(index=False, header=False)  # copy
+        pyperclip.copy(comment)                 # copy
         _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
         if len(comment) > 4:
             time.sleep(randint(4, 7))
         _txt_box.send_keys(' -ai ;)')  # signature to differentiate bot comment
         _txt_box.send_keys(Keys.ENTER)
         time.sleep(randint(3, 7))
+        self.text_to_speech("Commented")
 
 
 # --------------____________________________Private Func_________________________-------------------
