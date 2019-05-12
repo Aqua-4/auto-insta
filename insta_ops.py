@@ -11,6 +11,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
 import datetime
+import logging
 from os import path
 import pyttsx3
 import platform
@@ -19,6 +20,10 @@ from random import randint, choice
 import sqlite3
 from sklearn.externals import joblib
 import time
+
+logging.basicConfig(filename='auto_insta.log', filemode='a', level=logging.DEBUG,
+                    format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+logging.getLogger().addHandler(logging.StreamHandler())
 
 
 class InstaOps:
@@ -130,10 +135,8 @@ class InstaOps:
             if usr_counter > user_count:
                 break
             # except Exception:
-            #     print("xxxxxxxx-------Edge case occurred------xxxxxxxx",
             #           self.driver.current_url)
             #     self.account_init()
-            #     print(Exception)
 
     def unfollow_bot_leads(self):
         # unfollow users that don't follow back and were followed by this bot
@@ -174,7 +177,8 @@ class InstaOps:
         self.__search_tag(tag_name)
         try:
             self.__open_first_tile()
-        except:
+        except Exception as e:
+            logging.error(e, exc_info=True)
             self.text_to_speech(
                 "Tag search and open failed for {}".format(tag_name))
 
@@ -256,7 +260,8 @@ class InstaOps:
         while len(_list) < user_count:
             try:
                 _list.append(self.__get_tile_username())
-            except:
+            except Exception as e:
+                logging.error(e, exc_info=True)
                 self.text_to_speech("Cannot get user_name")
             click_right = self.driver.find_element_by_xpath('/html/body')
             click_right.send_keys(Keys.RIGHT)
@@ -316,13 +321,15 @@ class InstaOps:
                     self.driver.find_element_by_xpath(
                         '/html/body').send_keys(Keys.RIGHT)
                     err_counter = 0
-                except:
+                except Exception as e:
                     err_counter += 1
+                    logging.error(e, exc_info=True)
                     self.text_to_speech("Failed to like this post")
                 time.sleep(randint(4, 10))
                 counter += 1
 
-        except:
+        except Exception as e:
+            logging.error(e, exc_info=True)
             self.text_to_speech("Like Userpost Failed")
         self.text_to_speech("Liked {} posts for user {}".format(counter, user))
 
@@ -337,7 +344,8 @@ class InstaOps:
             self.__click_follow()
             self.db_conn.execute('''UPDATE instaDB
                  SET following=1 where user_id="{}";'''.format(user))
-        except:
+        except Exception as e:
+            logging.error(e, exc_info=True)
             self.text_to_speech(
                 "click_TO_FOLLOW error while following {}".format(user))
 
@@ -357,7 +365,8 @@ class InstaOps:
             _txt_box.send_keys(Keys.ENTER)
             time.sleep(randint(3, 7))
             self.text_to_speech("Commented {}".format(comment))
-        except:
+        except Exception as e:
+            logging.error(e, exc_info=True)
             self.text_to_speech("Failed to insert comment")
 
 
@@ -377,6 +386,8 @@ class InstaOps:
                 return (percent > 55)
         except ZeroDivisionError:
             return False
+        except Exception as e:
+            logging.error(e, exc_info=True)
 
     def __click_like(self):
         # click like button inside dialog box
@@ -443,7 +454,8 @@ class InstaOps:
             self.db_conn.execute('''UPDATE instaDB
                  SET following=0 where user_id="{}";'''.format(u_name))
             self.db_conn.commit()
-        except:
+        except Exception as e:
+            logging.error(e, exc_info=True)
             self.text_to_speech("ERR: while unfollowing {}".format(u_name))
 
     def __get_usr_name(self, usr_id):
@@ -466,7 +478,8 @@ class InstaOps:
             _count = [
                 href for href in links if btn_href in href.get_attribute("href")][0].text
             count = _count.split(' ')[0].replace(",", "")
-        except:
+        except Exception as e:
+            logging.error(e, exc_info=True)
             count = 0
         return self.__insta_number_conversion(count)
 
@@ -526,8 +539,8 @@ class InstaOps:
                 tmp_ele = i.find_element_by_tag_name("a")
                 _list.append(self.__format_userid(
                     tmp_ele.get_attribute("href")))
-            except:
-                print("ERR: ")
+            except Exception as e:
+                logging.error(e, exc_info=True)
         self.text_to_speech("Returned {} values".format(len(_list)), False)
         return _list
 
@@ -555,7 +568,7 @@ class InstaOps:
     def text_to_speech(self, text_string="Test", bool_print=True, bool_speak=True):
         # setup TTS for audio output
         if bool_print or self.headless:
-            print(text_string)
+            logging.info(text_string)
         if bool_speak:
             self.engine.say(text_string)
             self.engine.runAndWait()
