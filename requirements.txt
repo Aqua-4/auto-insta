@@ -7,4 +7,3 @@ scipy
 sklearn
 pyttsx3
 QtPy
-pyperclip

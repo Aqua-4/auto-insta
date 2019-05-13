@@ -15,7 +15,6 @@ import logging
 from os import path
 import pyttsx3
 import platform
-import pyperclip
 from random import randint, choice
 import sqlite3
 from sklearn.externals import joblib
@@ -355,9 +354,11 @@ class InstaOps:
             self.__click_comment()
             _txt_box = self.driver.find_element_by_xpath(
                 "//form/textarea[@aria-label='Add a comment…']")
-            pyperclip.copy(comment)                 # copy
             _txt_box.clear()
-            _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
+            # pyperclip.copy(comment)                 # copy
+            # _txt_box.send_keys(Keys.CONTROL, 'v')   # paste
+            self.driver.execute_script(
+                'arguments[0].value = arguments[1]', _txt_box, comment)
             if len(comment) > 4:
                 time.sleep(randint(4, 7))
             # signature to differentiate bot comment
