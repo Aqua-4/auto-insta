@@ -10,7 +10,7 @@ All Instagram Operations
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
-import datetime
+from datetime import datetime
 import logging
 from os import path
 import pyttsx3
@@ -107,6 +107,27 @@ class InstaOps:
         self._sync_db_col("followers")
         self._sync_db_col("following")
 
+    def refresh_db(self):
+        """
+        Update the entries by stalking all of the users in the db
+        use timestamp to support resume capability incase this function fails
+        """
+        users = pd.read_sql("""select user_id from instaDB where
+         (followers=1 OR following=1) AND
+         timestamp!='{}';""".format(self.__get_date()), self.db_conn).user_id
+        for user in users:
+            try:
+                meta = self._user_meta(user)
+                self._update_meta(user, meta, True)
+            except:
+                self.text_to_speech(
+                    "User {} has been removed by insta".format(user))
+                self.db_conn.execute('''UPDATE instaDB
+                    SET acc_status=0 WHERE user_id="{usr}";
+                '''.format(usr=user))
+        self.text_to_speech("""Database has been refreshed.
+            All user account have been synced""")
+
     def smart_activity(self, user_count=6, per_user_like=4, comments=[]):
         """
         1. get list of users
@@ -183,6 +204,7 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -269,20 +291,26 @@ class InstaOps:
             time.sleep(randint(4, 10))
         return _list
 
-    def _update_meta(self, user, user_meta):
+    def _update_meta(self, user, user_meta, refresh_mode=False):
         foc = user_meta['followers']
         fic = user_meta['following']
         posts = user_meta['posts']
+        timestamp = self.__get_date()
         if pd.read_sql('select * from instaDB where user_id="{}"'.format(user), self.db_conn).empty:
             self.db_conn.execute('''INSERT INTO
-             instaDB(user_id,followers_cnt,following_cnt,posts,acc_status,bot_lead) Values
-             ("{usr}",{followers},{following},{posts},1,1);
-            '''.format(usr=user, followers=foc, following=fic, posts=posts))
+             instaDB(user_id,followers_cnt,following_cnt,posts,acc_status,bot_lead,timestamp) Values
+             ("{usr}",{followers},{following},{posts},1,1,{timestamp});
+            '''.format(usr=user, followers=foc, following=fic, posts=posts, timestamp=timestamp))
+        elif refresh_mode:
+            self.db_conn.execute('''UPDATE instaDB
+                SET following_cnt={following}, followers_cnt={followers},
+                posts={posts}, acc_status=1, timestamp={timestamp} WHERE user_id="{usr}";
+            '''.format(usr=user, followers=foc, following=fic, posts=posts, timestamp=timestamp))
         else:
             self.db_conn.execute('''UPDATE instaDB
              SET following_cnt={following}, followers_cnt={followers},
-             posts={posts}, acc_status=1, bot_lead=1 WHERE user_id="{usr}";
-            '''.format(usr=user, followers=foc, following=fic, posts=posts))
+             posts={posts}, acc_status=1, bot_lead=1, timestamp={timestamp} WHERE user_id="{usr}";
+            '''.format(usr=user, followers=foc, following=fic, posts=posts, timestamp=timestamp))
         self.db_conn.commit()
 
     def _user_meta(self, u_name):
@@ -469,7 +497,7 @@ class InstaOps:
         return usr_name
 
     def __get_number_of(self, btn_link):
-        # return number of followers/following
+      # return number of followers/following
         if self.driver.current_url != btn_link.replace("{}/".format(btn_link.split("/")[-2]), ""):
             self.driver.get(btn_link.replace(
                 "{}/".format(btn_link.split("/")[-2]), ""))
@@ -479,6 +507,14 @@ class InstaOps:
             _count = [
                 href for href in links if btn_href in href.get_attribute("href")][0].text
             count = _count.split(' ')[0].replace(",", "")
+        except IndexError:
+            # for private account
+            _map = {'posts': 1, 'followers': 2, 'following': 3}
+            _action = btn_link.split('/')[-2]
+            _map = {'posts': 1, 'followers': 2, 'following': 3}
+            _action = btn_link.split('/')[-2]
+            count = self.driver.find_element_by_xpath(
+                '//li[{}]/span/span'.format(_map[_action])).text.replace(",", "")
         except Exception as e:
             logging.error(e, exc_info=True)
             count = 0
@@ -564,6 +600,10 @@ class InstaOps:
                 return int(number)
         else:
             return number
+
+    def __get_date(self):
+        # return 31-05-2018
+        return datetime.strftime(datetime.now(), '%d-%m-%Y')
 # --------------______________________________Utils______________________________-------------------
 
     def text_to_speech(self, text_string="Test", bool_print=True, bool_speak=True):
