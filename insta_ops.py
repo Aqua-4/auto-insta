@@ -128,7 +128,7 @@ class InstaOps:
         self.text_to_speech("""Database has been refreshed.
             All user account have been synced""")
 
-    def smart_activity(self, user_count=6, per_user_like=4, comments=[]):
+    def smart_activity(self, user_count=6, per_user_like=4, comments=[], hash_tag="#parashar"):
         """
         1. get list of users
         2. update meta for user
@@ -143,7 +143,7 @@ class InstaOps:
             user_meta = self._user_meta(user)
             self._update_meta(user, user_meta)
             if self.__predict(user_meta):
-                self._follow_user(user)
+                self._follow_user(user, hash_tag)
                 self._like_userpost(user, randint(2, per_user_like))
                 # TODO: find the optimal place to put this
                 usr_counter += 1
@@ -344,6 +344,7 @@ class InstaOps:
             while counter < count and counter < total_posts and err_counter < 5:
                 try:
                     self.__click_like()
+                    # TODO: store the url for the liked post into table
                     time.sleep(randint(2, 4))
                     self.driver.find_element_by_xpath(
                         '/html/body').send_keys(Keys.RIGHT)
@@ -354,13 +355,15 @@ class InstaOps:
                     self.text_to_speech("Failed to like this post")
                 time.sleep(randint(4, 10))
                 counter += 1
+            self.db_conn.execute('''UPDATE instaDB
+                 SET posts_liked="{cnt}" where user_id="{usr}";'''.format(usr=user, cnt=counter))
 
         except Exception as e:
             logging.error(e, exc_info=True)
             self.text_to_speech("Like Userpost Failed")
         self.text_to_speech("Liked {} posts for user {}".format(counter, user))
 
-    def _follow_user(self, user):
+    def _follow_user(self, user, hash_tag):
         """
         1. open user_profile
         2. click on follow
@@ -370,7 +373,8 @@ class InstaOps:
         try:
             self.__click_follow()
             self.db_conn.execute('''UPDATE instaDB
-                 SET following=1 where user_id="{}";'''.format(user))
+                 SET following=1, hash_tag="{tag}"
+                 where user_id="{usr}";'''.format(usr=user, tag=hash_tag))
         except Exception as e:
             logging.error(e, exc_info=True)
             self.text_to_speech(

@@ -23,7 +23,7 @@ comments = list(comm_df.comments)
 while(True):
     random_tag = choice(tags)
     bot.tagsearch_n_open(random_tag)
-    bot.smart_activity(5, 4, comments)
+    bot.smart_activity(5, 4, comments, random_tag)
     time.sleep(randint(2700, 3300))
     if bot._user_meta(bot.user_id)["following"] > bot._user_meta(bot.user_id)["followers"]:
         bot.unfollow_bot_leads()

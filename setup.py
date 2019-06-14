@@ -6,6 +6,7 @@ import sqlite3
 
 conn = sqlite3.connect('auto-insta.db')
 
+# 304 is the char limit for hashtag
 conn.execute('''CREATE TABLE instaDB
          (user_id VARCHAR(30) PRIMARY KEY NOT NULL,
          followers INT DEFAULT 0,
@@ -15,9 +16,13 @@ conn.execute('''CREATE TABLE instaDB
          following_cnt INT,
          acc_status INT DEFAULT 1,
          bot_lead INT DEFAULT 0,
+         hash_tag VARCHAR(64),
+         posts_liked INT,
          timestamp DATE
          )
          WITHOUT ROWID;''')
+
+# maybe create a table for keeping a track of liked_user_posts with column as url
 
 conn.execute('''CREATE TABLE creds
          (user_id VARCHAR(30) PRIMARY KEY NOT NULL,
