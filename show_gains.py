@@ -14,5 +14,8 @@ bot = InstaOps(False)
 bot.account_init()
 
 #bot.sync_db()
+#bot.text_to_speech("DB synced")
 bot.refresh_db()
+bot.text_to_speech("DB refreshed")
+
 
