@@ -1,5 +1,6 @@
 """
-Start bot and perform activity
+Bot starts to like and comment on user post based on AI
+Incase the followers LESS than following then bot will automatically unfollow
 """
 from insta_ops import InstaOps
 import pandas as pd
@@ -10,8 +11,6 @@ import time
 bot = InstaOps(True)
 bot.account_init()
 
-# Uncomment to update DB
-# bot.sync_db()
 
 tags_df = pd.read_excel('insta_config.xlsx', sheet_name='hashtags')
 comm_df = pd.read_excel('insta_config.xlsx', sheet_name='comments')
