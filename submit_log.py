@@ -11,7 +11,7 @@ import pandas as pd
 import shutil
 
 
-db_conn = sqlite3.connect('auto-insta (copy).db')
+db_conn = sqlite3.connect('auto-insta.db')
 
 usr = pd.read_sql("select user_id from creds",con=db_conn).user_id[0]
 db_copy = '{}_db.db'.format(usr)
