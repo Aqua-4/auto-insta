@@ -27,7 +27,7 @@ logging.getLogger().addHandler(logging.StreamHandler())
 
 class InstaOps:
 
-    def __init__(self, headless=True):
+    def __init__(self, headless=True, incognito=False):
         """
         1. setup db_connection
         2. get all user info
@@ -47,7 +47,8 @@ class InstaOps:
         if headless:
             options.add_argument("--headless")
 
-        if chromedata:
+        self.incognito = incognito
+        if chromedata and not incognito:
             options.add_argument('user-data-dir={}'.format(chromedata))
 
         exec_path = "chromedriver"
@@ -114,17 +115,33 @@ class InstaOps:
         """
         users = pd.read_sql("""select user_id from instaDB where
          (followers=1 OR following=1) AND
-         timestamp!='{}';""".format(self.__get_date()), self.db_conn).user_id
+         acc_status=1 AND
+         (timestamp IS IFNULL(NULL,0) OR
+          followers_cnt IS IFNULL(NULL,0) AND
+          following_cnt IS IFNULL(NULL,0) AND
+          posts IS IFNULL(NULL,0));""", self.db_conn).user_id
+        _err_cnt = 0
+        _max = 3
         for user in users:
             try:
                 meta = self._user_meta(user)
                 self._update_meta(user, meta, True)
+                _err_cnt = 0
             except:
                 self.text_to_speech(
                     "User {} has been removed by insta".format(user))
                 self.db_conn.execute('''UPDATE instaDB
                     SET acc_status=0 WHERE user_id="{usr}";
                 '''.format(usr=user))
+                _max = _max+1 if _max < 60 else 3
+                _err_cnt += 1
+            time.sleep(randint(2, _max))
+
+            # TODO: TEST
+            # print(_max, _err_cnt)
+            # if _err_cnt > 10:
+            #     self.text_to_speech("Bot has been detected, refresh later")
+            #     break
         self.text_to_speech("""Database has been refreshed.
             All user account have been synced""")
 
@@ -204,7 +221,6 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
-
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -320,7 +336,8 @@ class InstaOps:
             "{}followers/".format(user_url))
         meta['following'] = self.__get_number_of(
             "{}following/".format(user_url))
-        meta['posts'] = self.__get_posts_count()
+        meta['posts'] = self.__get_number_of(
+            "{}posts/".format(user_url))
         return meta
 
     def _like_userpost(self, user, count=0):
@@ -331,7 +348,8 @@ class InstaOps:
         if self.driver.current_url != self.__format_userid(user):
             self.driver.get(self.__format_userid(user))
         time.sleep(randint(10, 20))
-        total_posts = self.__get_posts_count()
+        total_posts = self.__get_number_of(
+            "{}posts/".format(self.__format_userid(user)))
         # like all posts
         if count == 0:
             count = total_posts
@@ -501,33 +519,22 @@ class InstaOps:
         return usr_name
 
     def __get_number_of(self, btn_link):
-      # return number of followers/following
+        """
+        TODO: re-write and reduce LOC
+        BUG: fails with 1 post/follower
+        return number of followers/following
+        """
         if self.driver.current_url != btn_link.replace("{}/".format(btn_link.split("/")[-2]), ""):
             self.driver.get(btn_link.replace(
                 "{}/".format(btn_link.split("/")[-2]), ""))
-        btn_href = btn_link
-        links = self.driver.find_elements_by_tag_name("a")
-        try:
-            _count = [
-                href for href in links if btn_href in href.get_attribute("href")][0].text
-            count = _count.split(' ')[0].replace(",", "")
-        except IndexError:
-            # for private account
-            _map = {'posts': 1, 'followers': 2, 'following': 3}
-            _action = btn_link.split('/')[-2]
-            _map = {'posts': 1, 'followers': 2, 'following': 3}
-            _action = btn_link.split('/')[-2]
-            count = self.driver.find_element_by_xpath(
-                '//li[{}]/span/span'.format(_map[_action])).text.replace(",", "")
-        except Exception as e:
-            logging.error(e, exc_info=True)
-            count = 0
-        return self.__insta_number_conversion(count)
-
-    def __get_posts_count(self):
-        # return total posts by user
+        action = btn_link.split("/")[-2]
+        # try:
         count = self.driver.find_element_by_xpath(
-            '//li/span/span').text.replace(",", "")
+            "//*[substring-before(a,' {}')]".format(action)
+        ).text.replace(action, "").strip().replace(",", "")
+        # except:  # Exception as e:
+        #     # logging.error(e, exc_info=True)
+        #     count = 0
         return self.__insta_number_conversion(count)
 
     def __get_list_of(self, attr_name="followers"):
