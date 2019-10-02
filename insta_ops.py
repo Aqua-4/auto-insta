@@ -222,6 +222,7 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
+
     def _insta_login(self):
         # enter credentials if not logged in
         self.driver.get(
@@ -423,7 +424,6 @@ class InstaOps:
 
 # --------------____________________________Private Func_________________________-------------------
 
-
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back
         # return Boolean
@@ -530,7 +530,7 @@ class InstaOps:
         action = btn_link.split("/")[-2]
         # try:
         count = self.driver.find_element_by_xpath(
-            "//*[substring-before(a,' {}')]".format(action)
+            "//ul/li[substring-before(*,' {}')]".format(action)
         ).text.replace(action, "").strip().replace(",", "")
         # except:  # Exception as e:
         #     # logging.error(e, exc_info=True)
