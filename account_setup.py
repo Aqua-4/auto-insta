@@ -3,7 +3,8 @@ from getpass import getpass
 
 conn = sqlite3.connect('auto-insta.db')
 
-user_id = input("User ID/Email:")
+print("Do not insert email for login, please use user_id")
+user_id = input("Insert user_id:")
 passwd = getpass("Insert Password:")
 
 conn.execute("DELETE from creds")
