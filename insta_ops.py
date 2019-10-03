@@ -528,13 +528,13 @@ class InstaOps:
             self.driver.get(btn_link.replace(
                 "{}/".format(btn_link.split("/")[-2]), ""))
         action = btn_link.split("/")[-2]
-        # try:
-        count = self.driver.find_element_by_xpath(
-            "//ul/li[substring-before(*,' {}')]".format(action)
-        ).text.replace(action, "").strip().replace(",", "")
-        # except:  # Exception as e:
-        #     # logging.error(e, exc_info=True)
-        #     count = 0
+        try:
+            count = self.driver.find_element_by_xpath(
+                "//ul/li[substring-before(*,' {}')]".format(action)
+            ).text.replace(action, "").strip().replace(",", "")
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            count = 0
         return self.__insta_number_conversion(count)
 
     def __get_list_of(self, attr_name="followers"):
