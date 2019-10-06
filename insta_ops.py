@@ -368,6 +368,7 @@ class InstaOps:
             while counter < count and counter < total_posts and err_counter < 5:
                 try:
                     self.__click_like()
+                    self._is_blocked()
                     # TODO: store the url for the liked post into table
                     time.sleep(randint(2, 4))
                     self.driver.find_element_by_xpath(
@@ -396,6 +397,7 @@ class InstaOps:
             self.driver.get(self.__format_userid(user))
         try:
             self.__click_follow()
+            self._is_blocked()
             self.db_conn.execute('''UPDATE instaDB
                  SET following=1, hash_tag="{tag}"
                  where user_id="{usr}";'''.format(usr=user, tag=hash_tag))
@@ -408,6 +410,7 @@ class InstaOps:
         #  insert comment on user post
         try:
             self.__click_comment()
+            self._is_blocked()
             _txt_box = self.driver.find_element_by_xpath(
                 "//form/textarea[@aria-label='Add a comment…']")
             _txt_box.clear()
@@ -426,6 +429,19 @@ class InstaOps:
             logging.error(e, exc_info=True)
             self.text_to_speech("Failed to insert comment")
 
+    def _is_blocked(self):
+        """
+        1. check if the action is blocked
+        2. close
+        """
+        blked = self.driver.find_elements_by_xpath(
+            "//div/h3[contains(text(),'Action Blocked')]")
+        if blked:
+            logging.error("ERR: ACTION_BLOCKED")
+            self.text_to_speech("Action has been blocked, closing program")
+            self.__del__()
+        else:
+            pass
 
 # --------------____________________________Private Func_________________________-------------------
 
