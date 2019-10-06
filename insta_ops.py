@@ -432,8 +432,9 @@ class InstaOps:
     def _is_blocked(self):
         """
         1. check if the action is blocked
-        2. close
+        2. exit program
         """
+        time.sleep(randint(4, 8))
         blked = self.driver.find_elements_by_xpath(
             "//div/h3[contains(text(),'Action Blocked')]")
         if blked:
