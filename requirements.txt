@@ -7,3 +7,4 @@ scipy
 sklearn
 pyttsx3
 QtPy
+fake-useragent

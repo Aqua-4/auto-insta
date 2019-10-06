@@ -8,6 +8,7 @@ All Instagram Operations
 """
 
 from selenium import webdriver
+from fake_useragent import UserAgent
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
 from datetime import datetime
@@ -27,7 +28,7 @@ logging.getLogger().addHandler(logging.StreamHandler())
 
 class InstaOps:
 
-    def __init__(self, headless=True, incognito=False):
+    def __init__(self, headless=True, rand_agent=False, incognito=False):
         """
         1. setup db_connection
         2. get all user info
@@ -46,6 +47,10 @@ class InstaOps:
         self.headless = headless
         if headless:
             options.add_argument("--headless")
+        if rand_agent:
+            ua = UserAgent()
+            userAgent = ua.random
+            options.add_argument(f'user-agent={userAgent}')
 
         self.incognito = incognito
         if chromedata and not incognito:
