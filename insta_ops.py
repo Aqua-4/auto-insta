@@ -438,6 +438,7 @@ class InstaOps:
         blked = self.driver.find_elements_by_xpath(
             "//div/h3[contains(text(),'Action Blocked')]")
         if blked:
+            self.driver.delete_all_cookies()
             logging.error("ERR: ACTION_BLOCKED")
             self.text_to_speech("Action has been blocked, closing program")
             self.__del__()
