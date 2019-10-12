@@ -466,15 +466,11 @@ class InstaOps:
 
     def __click_like(self):
         # click like button inside dialog box
-        dialog = self.driver.find_element_by_xpath("//div/div[@role='dialog']")
-        dialog.find_element_by_xpath(
-            "//span[@aria-label='Like']").click()
+        self.driver.find_element_by_xpath("//div/div[@role='dialog']//span[@aria-label='Like']").click()
 
     def __click_comment(self):
         # click comment button inside dialog box
-        dialog = self.driver.find_element_by_xpath("//div/div[@role='dialog']")
-        dialog.find_element_by_xpath(
-            "//span[@aria-label='Comment']").click()
+        self.driver.find_element_by_xpath("//div/div[@role='dialog']//span[@aria-label='Comment']").click()
 
     def __click_follow(self):
         # click follow btn
