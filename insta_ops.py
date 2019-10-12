@@ -16,7 +16,7 @@ import logging
 from os import path
 import pyttsx3
 import platform
-from random import randint, choice
+from random import randint, choice, shuffle
 import sqlite3
 from sklearn.externals import joblib
 import time
@@ -159,7 +159,8 @@ class InstaOps:
         """
         # get 3 times the user_name incase of worst case scenario
         usr_counter = 0
-        users = self._extract_users_from_tile(user_count*3)
+        users = self._extract_users_from_tile(user_count*2)
+        shuffle(users)
         for user in users:
             # try:
             user_meta = self._user_meta(user)
