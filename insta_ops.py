@@ -19,7 +19,7 @@ import platform
 from random import randint, choice, shuffle
 import sqlite3
 from sklearn.externals import joblib
-import time
+# import time
 
 logging.basicConfig(filename='auto_insta.log', filemode='a', level=logging.INFO,
                     format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -28,7 +28,7 @@ logging.getLogger().addHandler(logging.StreamHandler())
 
 class InstaOps:
 
-    def __init__(self, headless=True, rand_agent=False, incognito=False):
+    def __init__(self, headless=True, rand_agent=False, bool_mute=False, incognito=False):
         """
         1. setup db_connection
         2. get all user info
@@ -45,6 +45,7 @@ class InstaOps:
         options.add_argument("--start-maximized")
         options.add_argument("--disable-infobars")
         self.headless = headless
+        self.bool_mute = bool_mute
         if headless:
             options.add_argument("--headless")
         if rand_agent:
@@ -227,7 +228,6 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
-
 
     def _insta_login(self):
         # enter credentials if not logged in
@@ -645,6 +645,6 @@ class InstaOps:
         # setup TTS for audio output
         if bool_print or self.headless:
             logging.info(text_string)
-        if bool_speak:
+        if bool_speak and not self.bool_mute:
             self.engine.say(text_string)
             self.engine.runAndWait()
