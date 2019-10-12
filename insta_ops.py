@@ -19,7 +19,7 @@ import platform
 from random import randint, choice, shuffle
 import sqlite3
 from sklearn.externals import joblib
-# import time
+import time
 
 logging.basicConfig(filename='auto_insta.log', filemode='a', level=logging.INFO,
                     format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
