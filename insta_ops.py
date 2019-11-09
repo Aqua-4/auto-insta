@@ -318,21 +318,21 @@ class InstaOps:
         foc = user_meta['followers']
         fic = user_meta['following']
         posts = user_meta['posts']
-        timestamp = self.__get_date()
+        timestamp = datetime.now().date()
         if pd.read_sql('select * from instaDB where user_id="{}"'.format(user), self.db_conn).empty:
             self.db_conn.execute('''INSERT INTO
              instaDB(user_id,followers_cnt,following_cnt,posts,acc_status,bot_lead,timestamp) Values
-             ("{usr}",{followers},{following},{posts},1,1,{timestamp});
+             ("{usr}",{followers},{following},{posts},1,1,"{timestamp}");
             '''.format(usr=user, followers=foc, following=fic, posts=posts, timestamp=timestamp))
         elif refresh_mode:
             self.db_conn.execute('''UPDATE instaDB
                 SET following_cnt={following}, followers_cnt={followers},
-                posts={posts}, acc_status=1, timestamp={timestamp} WHERE user_id="{usr}";
+                posts={posts}, acc_status=1, timestamp="{timestamp}" WHERE user_id="{usr}";
             '''.format(usr=user, followers=foc, following=fic, posts=posts, timestamp=timestamp))
         else:
             self.db_conn.execute('''UPDATE instaDB
              SET following_cnt={following}, followers_cnt={followers},
-             posts={posts}, acc_status=1, bot_lead=1, timestamp={timestamp} WHERE user_id="{usr}";
+             posts={posts}, acc_status=1, bot_lead=1, timestamp="{timestamp}" WHERE user_id="{usr}";
             '''.format(usr=user, followers=foc, following=fic, posts=posts, timestamp=timestamp))
         self.db_conn.commit()
 
@@ -632,9 +632,6 @@ class InstaOps:
         else:
             return number
 
-    def __get_date(self):
-        # return 31-05-2018
-        return datetime.strftime(datetime.now(), '%d-%m-%Y')
 # --------------______________________________Utils______________________________-------------------
 
     def text_to_speech(self, text_string="Test", bool_print=True, bool_speak=True):
