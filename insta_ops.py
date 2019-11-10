@@ -185,10 +185,10 @@ class InstaOps:
     def unfollow_bot_leads(self):
         # unfollow users that don't follow back and were followed by this bot
         self.text_to_speech("Unfollowing users followed by bot")
-        traitors = list(pd.read_sql("""
-        select user_id from instaDb where
+        traitors = list(pd.read_sql("""select user_id from instaDb where
          bot_lead=1 and following=1 and followers=0;""", self.db_conn).user_id)
-        for usr in traitors:
+        _max = randint(10, 40)
+        for usr in traitors[:_max]:
             self._unfollow_user(usr)
         self.text_to_speech("Unfollowed users that don't follow back")
 
@@ -466,11 +466,13 @@ class InstaOps:
 
     def __click_like(self):
         # click like button inside dialog box
-        self.driver.find_element_by_xpath("//div/div[@role='dialog']//span[@aria-label='Like']").click()
+        self.driver.find_element_by_xpath(
+            "//div/div[@role='dialog']//span[@aria-label='Like']").click()
 
     def __click_comment(self):
         # click comment button inside dialog box
-        self.driver.find_element_by_xpath("//div/div[@role='dialog']//span[@aria-label='Comment']").click()
+        self.driver.find_element_by_xpath(
+            "//div/div[@role='dialog']//span[@aria-label='Comment']").click()
 
     def __click_follow(self):
         # click follow btn
