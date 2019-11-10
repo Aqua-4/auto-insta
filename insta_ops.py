@@ -9,6 +9,7 @@ All Instagram Operations
 
 from selenium import webdriver
 from fake_useragent import UserAgent
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
 from datetime import datetime
@@ -543,14 +544,17 @@ class InstaOps:
     def __get_number_of(self, btn_link):
         """
         TODO: re-write and reduce LOC
-        BUG: fails with 1 post/follower
-        return number of followers/following
         """
-        if self.driver.current_url != btn_link.replace("{}/".format(btn_link.split("/")[-2]), ""):
-            self.driver.get(btn_link.replace(
-                "{}/".format(btn_link.split("/")[-2]), ""))
         action = btn_link.split("/")[-2]
+        if self.driver.current_url != btn_link.replace("{}/".format(action), ""):
+            self.driver.get(btn_link.replace(
+                "{}/".format(action), ""))
         try:
+            count = self.driver.find_element_by_xpath(
+                "//ul/li[substring-before(*,' {}')]".format(action)
+            ).text.replace(action, "").strip().replace(",", "")
+        except NoSuchElementException as e:
+            action = action[:-1]
             count = self.driver.find_element_by_xpath(
                 "//ul/li[substring-before(*,' {}')]".format(action)
             ).text.replace(action, "").strip().replace(",", "")
