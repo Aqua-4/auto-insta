@@ -115,18 +115,19 @@ class InstaOps:
         self._sync_db_col("followers")
         self._sync_db_col("following")
 
-    def refresh_db(self):
+    def refresh_db(self, limit=True):
         """
         Update the entries by stalking all of the users in the db
         use timestamp to support resume capability incase this function fails
         """
+        sql_lim = " LIMIT {} ".format(randint(10, 40)) if limit else ""
         users = pd.read_sql("""select user_id from instaDB where
          (followers=1 OR following=1) AND
          acc_status=1 AND
          (timestamp IS IFNULL(NULL,0) OR
           followers_cnt IS IFNULL(NULL,0) AND
           following_cnt IS IFNULL(NULL,0) AND
-          posts IS IFNULL(NULL,0));""", self.db_conn).user_id
+          posts IS IFNULL(NULL,0)){};""".format(sql_lim), self.db_conn).user_id
         _err_cnt = 0
         _max = 3
         for user in users:
@@ -184,12 +185,12 @@ class InstaOps:
             #           self.driver.current_url)
             #     self.account_init()
 
-    def unfollow_bot_leads(self):
+    def unfollow_bot_leads(self, fu_all=False):
         # unfollow users that don't follow back and were followed by this bot
         self.text_to_speech("Unfollowing users followed by bot")
         traitors = list(pd.read_sql("""select user_id from instaDb where
          bot_lead=1 and following=1 and followers=0;""", self.db_conn).user_id)
-        _max = randint(10, 40)
+        _max = len(traitors) if fu_all else randint(10, 40)
         for usr in traitors[:_max]:
             self._unfollow_user(usr)
         self.text_to_speech("Unfollowed users that don't follow back")
@@ -230,6 +231,7 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _insta_login(self):
         # enter credentials if not logged in
