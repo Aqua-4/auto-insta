@@ -146,9 +146,10 @@ class InstaOps:
 
             # TODO: TEST
             # print(_max, _err_cnt)
-            # if _err_cnt > 10:
-            #     self.text_to_speech("Bot has been detected, refresh later")
-            #     break
+            if _err_cnt > 10:
+                self.text_to_speech("Bot has been detected, refresh later")
+                break
+
         self.text_to_speech("""Database has been refreshed.
             All user account have been synced""")
 
