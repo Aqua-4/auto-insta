@@ -476,7 +476,7 @@ class InstaOps:
     def __click_comment(self):
         # click comment button inside dialog box
         self.driver.find_element_by_xpath(
-            "//div/div[@role='dialog']//span[@aria-label='Comment']").click()
+            "//div/div[@role='dialog']//textarea[@aria-label='Add a comment…']").click()
 
     def __click_follow(self):
         # click follow btn
