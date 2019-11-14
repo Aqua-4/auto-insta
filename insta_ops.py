@@ -490,8 +490,8 @@ class InstaOps:
 
     def __open_first_userpost(self):
         # open first user post
-        first_tile = self.driver.find_element_by_tag_name("article")
-        first_tile.find_element_by_tag_name("a").click()
+        first_tile = self.driver.find_element_by_xpath("//article//a")
+        first_tile.click()
         time.sleep(randint(4, 10))
 
     def __search_tag(self, tag_name):
