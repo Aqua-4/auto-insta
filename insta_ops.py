@@ -293,15 +293,18 @@ class InstaOps:
         insta_link = self.__format_userid(u_name)
         self.driver.get(insta_link)
         time.sleep(randint(5, 10))
+        timestamp = datetime.now().date()
+
         if len(self.driver.find_elements_by_tag_name("h2")):
-            self.db_conn.execute('''UPDATE instaDB SET acc_status=0
-             where user_id="{}"'''.format(u_name))
+            self.db_conn.execute('''UPDATE instaDB SET acc_status=0, timestamp="{t_stamp}"
+             where user_id="{usr}"'''.format(usr=u_name, t_stamp=timestamp))
+
             self.text_to_speech(
                 "User {} acc does not exist anymore".format(u_name), False)
         else:
             self.__click_unfollow(u_name)
-            self.db_conn.execute('''UPDATE instaDB SET following=0
-             where user_id="{}"'''.format(u_name))
+            self.db_conn.execute('''UPDATE instaDB SET following=0, timestamp="{t_stamp}"
+             where user_id="{usr}"'''.format(usr=u_name, t_stamp=timestamp))
 
     def _extract_users_from_tile(self, user_count=20):
         # return list of usernames
