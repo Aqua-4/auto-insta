@@ -67,9 +67,11 @@ class InstaOps:
         # try to start sound Driver, but if not found Just put it on mute
         try:
             self.engine = pyttsx3.init()
+            self.engine.say("")
+            self.engine.runAndWait()
         except:
-            print("Sound Driver has an issue, application has been set to mute")
             self.bool_mute = True
+            print("Sound Driver has an issue, application has been set to mute")
         # load the model if exists
         if path.isfile('classifier_mod.pkl') and path.isfile('sc_X_mod.pkl'):
             self.classifier_mod = joblib.load('classifier_mod.pkl')
