@@ -120,7 +120,7 @@ class InstaOps:
         Update the entries by stalking all of the users in the db
         use timestamp to support resume capability incase this function fails
         """
-        sql_lim = " LIMIT {} ".format(randint(10, 40)) if limit else ""
+        sql_lim = " LIMIT {} ".format(randint(25, 50)) if limit else ""
         users = pd.read_sql("""select user_id from instaDB where
          (followers=1 OR following=1) AND
          acc_status=1 AND
@@ -191,7 +191,7 @@ class InstaOps:
         traitors = list(pd.read_sql("""select user_id from instaDb
          WHERE bot_lead=1 and following=1 and followers=0
          ORDER BY timestamp LIMIT 0,100;""", self.db_conn).user_id)
-        _max = len(traitors) if fu_all else randint(10, 40)
+        _max = len(traitors) if fu_all else randint(25, 50)
         for usr in traitors[:_max]:
             self._unfollow_user(usr)
         self.text_to_speech("Unfollowed users that don't follow back")
@@ -353,6 +353,7 @@ class InstaOps:
             "{}following/".format(user_url))
         meta['posts'] = self.__get_number_of(
             "{}posts/".format(user_url))
+        logging.info("{} Meta-> {}".format(u_name, meta))
         return meta
 
     def _like_userpost(self, user, count=0):
