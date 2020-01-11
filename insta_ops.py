@@ -83,8 +83,9 @@ class InstaOps:
         self.db_conn.close()
         self.text_to_speech("Shutting Down Instagram Bot", False)
         self.driver.quit()
-        self.text_to_speech(
-            "Bot has been powered off, goodbye {}".format(self.user_name), False)
+        if not self.incognito:
+            self.text_to_speech(
+                "Bot has been powered off, goodbye {}".format(self.user_name), False)
 
     def account_init(self):
         """
@@ -233,6 +234,20 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
+    def _get_missing_meta_users(self, limit=False):
+        """
+        Update the entries by stalking all of the users in the db
+        use timestamp to support resume capability incase this function fails
+        """
+        sql_lim = " LIMIT {} ".format(randint(25, 50)) if limit else ""
+        users = pd.read_sql("""select user_id from instaDB where
+         (followers=1 OR following=1) AND
+         acc_status=1 AND
+         (timestamp IS IFNULL(NULL,0) OR followers_cnt IS IFNULL(NULL,0) AND
+          following_cnt IS IFNULL(NULL,0) AND
+          posts IS IFNULL(NULL,0)){};""".format(sql_lim), self.db_conn).user_id
+
+        return users
 
     def _insta_login(self):
         # enter credentials if not logged in
