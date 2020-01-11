@@ -28,7 +28,6 @@ bot = InstaOps(False)
 bot.account_init()
 
 bot.sync_db()
-bot.refresh_db()
 bot.__del__()
 
 incognito = InstaOps(True, True, True, True)
