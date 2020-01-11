@@ -64,7 +64,8 @@ class InstaOps:
 
         self.driver = webdriver.Chrome(
             executable_path=exec_path, chrome_options=options)
-        self.engine = pyttsx3.init()
+        if not bool_mute:
+            self.engine = pyttsx3.init()
 
         # load the model if exists
         if path.isfile('classifier_mod.pkl') and path.isfile('sc_X_mod.pkl'):
