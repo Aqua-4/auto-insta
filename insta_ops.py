@@ -64,14 +64,18 @@ class InstaOps:
 
         self.driver = webdriver.Chrome(
             executable_path=exec_path, chrome_options=options)
+        # Causes a segmentation FAULT
         # try to start sound Driver, but if not found Just put it on mute
-        try:
+        # try:
+        #     self.engine = pyttsx3.init()
+        #     self.engine.say("")
+        #     self.engine.runAndWait()
+        # except:
+        #     self.bool_mute = True
+        #     print("Sound Driver has an issue, application has been set to mute")
+        if not bool_mute:
             self.engine = pyttsx3.init()
-            self.engine.say("")
-            self.engine.runAndWait()
-        except:
-            self.bool_mute = True
-            print("Sound Driver has an issue, application has been set to mute")
+
         # load the model if exists
         if path.isfile('classifier_mod.pkl') and path.isfile('sc_X_mod.pkl'):
             self.classifier_mod = joblib.load('classifier_mod.pkl')
@@ -239,6 +243,7 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _get_missing_meta_users(self, limit=False):
         """

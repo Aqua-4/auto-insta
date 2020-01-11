@@ -6,9 +6,12 @@ from insta_ops import InstaOps
 import pandas as pd
 from random import randint, choice
 import time
+import platform
 
-
-bot = InstaOps(True)
+if platform.system() == 'Linux':
+    bot = InstaOps(True, False, True)
+else:
+    bot = InstaOps(True)
 bot.account_init()
 
 
