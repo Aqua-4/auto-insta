@@ -492,8 +492,10 @@ class InstaOps:
                     [[user_meta['followers'], user_meta['following']]]))
                 return bool(_p)
             else:
+                # check if follower/following ratio is 90% or more
+                # check if user has followers < 6000
                 percent = user_meta['following']/user_meta['followers']*100
-                return (percent > 55)
+                return (percent > 90 and user_meta['followers'] < 6000)
         except ZeroDivisionError:
             return False
         except Exception as e:
