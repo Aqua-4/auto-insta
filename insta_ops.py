@@ -22,7 +22,7 @@ import sqlite3
 from sklearn.externals import joblib
 import time
 
-logging.basicConfig(filename='auto_insta.log', filemode='a', level=logging.INFO,
+logging.basicConfig(filename='auto_insta.log', filemode='w', level=logging.INFO,
                     format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 logging.getLogger().addHandler(logging.StreamHandler())
 
@@ -244,6 +244,20 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
+    def _bool_check_tag(self, tag_name="#parashar"):
+        """
+        1. search for a hash-tag
+        2. open the first photo tile
+        3. IF exception hashtag does not exist
+        """
+        self.__search_tag(tag_name)
+        try:
+            self.__open_first_tile()
+            return True
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            return False
+            
 
     def _get_missing_meta_users(self, limit=False):
         """
