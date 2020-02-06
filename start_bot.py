@@ -29,6 +29,6 @@ while(True):
     time.sleep(randint(2700, 3300))
     bot.refresh_db()
     time.sleep(randint(3000, 6000))
-    if (bot._user_meta(bot.user_id)["following"] + 100) > bot._user_meta(bot.user_id)["followers"]:
+    if (bot._user_meta(bot.user_id)["following"] + 100) < bot._user_meta(bot.user_id)["followers"]:
         bot.unfollow_bot_leads()
         time.sleep(randint(2700, 3300))
