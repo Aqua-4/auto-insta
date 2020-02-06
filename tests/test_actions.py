@@ -4,8 +4,7 @@ Incase the followers LESS than following then bot will automatically unfollow
 """
 from insta_ops import InstaOps
 import pandas as pd
-from random import randint, choice
-import time
+from random import choice
 import platform
 
 if platform.system() == 'Linux':
@@ -23,7 +22,6 @@ comments = list(comm_df.comments)
 
 hash_tag = "#instagram"
 bot.tagsearch_n_open(hash_tag)
-bot.smart_activity(5, 4, comments, hash_tag)
 user = bot._extract_users_from_tile(1)[0]
 user_meta = bot._user_meta(user)
 bot._follow_user(user, hash_tag)

@@ -257,7 +257,6 @@ class InstaOps:
         except Exception as e:
             logging.error(e, exc_info=True)
             return False
-            
 
     def _get_missing_meta_users(self, limit=False):
         """
@@ -517,13 +516,15 @@ class InstaOps:
 
     def __click_like(self):
         # click like button inside dialog box
-        self.driver.find_element_by_xpath(
-            "//div/div[@role='dialog']//span[@aria-label='Like']").click()
+        # use return to throw error when fails
+        self.driver.execute_script(
+            '''return document.querySelector('button>svg[aria-label="Like"]')
+            .parentElement.click();''')
 
     def __click_comment(self):
         # click comment button inside dialog box
         self.driver.find_element_by_xpath(
-            "//div/div[@role='dialog']//textarea[@aria-label='Add a comment…']").click()
+            "//textarea[@aria-label='Add a comment…']").click()
 
     def __click_follow(self):
         # click follow btn
