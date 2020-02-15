@@ -2,7 +2,7 @@
 Bot starts to like and comment on user post based on AI
 Incase the followers LESS than following then bot will automatically unfollow
 """
-from insta_ops import InstaOps
+from insta_ops import ..InstaOps
 import pandas as pd
 from random import choice
 import platform
