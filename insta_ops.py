@@ -14,7 +14,7 @@ from selenium.webdriver.common.keys import Keys
 import pandas as pd
 from datetime import datetime
 import logging
-from os import path
+from os import path, remove
 import pyttsx3
 import platform
 from random import randint, choice, shuffle
@@ -244,6 +244,7 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
+
     def _bool_check_tag(self, tag_name="#parashar"):
         """
         1. search for a hash-tag
@@ -311,9 +312,24 @@ class InstaOps:
                 "You have {} {} followers".format(lose_gain, abs(diff)))
 
     def _sync_db_col(self, column="followers"):
+        """
+            save column-list temporarily as checkpoint incase op
+            if success: delte tmp file
+            else: list will be generated from the csv, not from insta
+        """
         # sync db column - followers/following
 
-        col_list = self.__get_list_of(column)
+        tmp_file = "tmp_{fol_col}.csv".format(fol_col=column)
+        if path.isfile(tmp_file):
+            tmp_df = pd.read_csv(tmp_file)
+            col_list = list(tmp_df['followers'])
+        else:
+            col_list = self.__get_list_of(column)
+            tmp_df = pd.DataFrame({column: col_list})
+            tmp_df.to_csv(tmp_file, index=False)
+
+        self.db_conn.execute('''UPDATE instaDB
+         SET {fol_col} = 0;'''.format(fol_col=column))
 
         for user in col_list:
             if pd.read_sql('select * from instaDB where user_id="{}"'.format(user), self.db_conn).empty:
@@ -325,6 +341,7 @@ class InstaOps:
                  acc_status = 1
                  WHERE user_id = "{usr}";'''.format(fol_col=column, usr=user))
         self.db_conn.commit()
+        # remove(tmp_file)
         self.text_to_speech("Column {} has been synced with DB".format(column))
 
     def _unfollow_user(self, u_name):
