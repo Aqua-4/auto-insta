@@ -24,18 +24,14 @@ def worker(user):
         '''.format(usr=user))
 
 
-bot = InstaOps(False)
-bot.account_init()
-
-bot.sync_db()
-bot.__del__()
-
-incognito = InstaOps(True, True, True, True)
-missing_users = incognito._get_missing_meta_users()
-
 print("Commencing HAVOC, please close other applications...")
 if __name__ == '__main__':
+
+    incognito = InstaOps(True, True, True, True)
+    missing_users = incognito._get_missing_meta_users()
     p = mp.Pool(mp.cpu_count())
     p.map(worker, missing_users)
 
-
+    bot = InstaOps()
+    bot.account_init()
+    bot.sync_db()
