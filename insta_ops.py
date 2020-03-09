@@ -53,6 +53,7 @@ class InstaOps:
             ua = UserAgent()
             userAgent = ua.random
             options.add_argument(f'user-agent={userAgent}')
+        # TODO: fix user agent to macbook
 
         self.incognito = incognito
         if chromedata and not incognito:
@@ -89,8 +90,15 @@ class InstaOps:
         self.text_to_speech("Insta Bot has been initialized")
 
     def __del__(self):
+        """
+        chcek if smart_activity has been started
+        if yes - check if session info has been stored
+        """
+        
+        self._store_session_info()
         self.db_conn.commit()
         self.db_conn.close()
+        
         self.text_to_speech("Shutting Down Instagram Bot", False)
         self.driver.quit()
         if not self.incognito:
@@ -182,7 +190,8 @@ class InstaOps:
             self._update_meta(user, user_meta)
             if self.__predict(user_meta):
                 self._follow_user(user, hash_tag)
-                self._like_userpost(user, randint(2, per_user_like))
+                self._like_userpost(user, randint(
+                    per_user_like/2, per_user_like))
                 # TODO: find the optimal place to put this
                 usr_counter += 1
                 if comments:
@@ -221,6 +230,7 @@ class InstaOps:
         for traitor in traitors:
             self._unfollow_user(traitor)
         self.text_to_speech("Unfollowed unfollowers completed")
+        # TODO: replace with fn
         self.follower_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/followers/".format(self.user_id))
         self.following_cnt = self.__get_number_of(
@@ -310,6 +320,39 @@ class InstaOps:
             lose_gain = "gained" if diff > 0 else "lost"
             self.text_to_speech(
                 "You have {} {} followers".format(lose_gain, abs(diff)))
+
+    def _update_session_meta(self):
+        """
+        store current session followers and following count
+        will be called before starting smart_activity
+        """
+        self.follower_cnt = self.__get_number_of(
+            "https://www.instagram.com/{}/followers/".format(self.user_id))
+        self.following_cnt = self.__get_number_of(
+            "https://www.instagram.com/{}/following/".format(self.user_id))
+        self.session_stamp = str(datetime.now())
+
+    def _store_session_info(self):
+        try:
+            follower_cnt = self.__get_number_of(
+                "https://www.instagram.com/{}/followers/".format(self.user_id))
+            following_cnt = self.__get_number_of(
+                "https://www.instagram.com/{}/following/".format(self.user_id))
+            delta_follower = follower_cnt - self.follower_cnt
+            delta_following = following_cnt - self.following_cnt
+            start_stamp = self.session_stamp
+            end_stamp = str(datetime.now())
+            self.db_conn.execute('''INSERT INTO
+            smartlog(session_start, session_end, followers_cnt, following_cnt,
+            delta_followers_cnt, delta_following_cnt )
+            Values ("{start}","{end}",{foc},{fic},{dfoc},{dfic}
+            );'''.format(start=start_stamp, end=end_stamp, foc=self.follower_cnt,
+                        fic=self.following_cnt, dfoc=delta_follower,
+                        dfic=delta_following))
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            self.text_to_speech("Failed to store session info")
+
 
     def _sync_db_col(self, column="followers"):
         """
