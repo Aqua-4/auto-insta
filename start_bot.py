@@ -9,7 +9,7 @@ import time
 import platform
 
 if platform.system() == 'Linux':
-    bot = InstaOps(True, False, True)
+    bot = InstaOps(False, False, True)
 else:
     bot = InstaOps(True)
 bot.account_init()

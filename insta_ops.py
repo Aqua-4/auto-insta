@@ -49,10 +49,13 @@ class InstaOps:
         self.bool_mute = bool_mute
         if headless:
             options.add_argument("--headless")
+
+        userAgent = """Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36
+         (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36"""
         if rand_agent:
             ua = UserAgent()
             userAgent = ua.random
-            options.add_argument(f'user-agent={userAgent}')
+        options.add_argument(f'user-agent={userAgent}')
         # TODO: fix user agent to macbook
 
         self.incognito = incognito
@@ -94,11 +97,9 @@ class InstaOps:
         chcek if smart_activity has been started
         if yes - check if session info has been stored
         """
-        
         self._store_session_info()
         self.db_conn.commit()
         self.db_conn.close()
-        
         self.text_to_speech("Shutting Down Instagram Bot", False)
         self.driver.quit()
         if not self.incognito:
@@ -347,12 +348,11 @@ class InstaOps:
             delta_followers_cnt, delta_following_cnt )
             Values ("{start}","{end}",{foc},{fic},{dfoc},{dfic}
             );'''.format(start=start_stamp, end=end_stamp, foc=self.follower_cnt,
-                        fic=self.following_cnt, dfoc=delta_follower,
-                        dfic=delta_following))
+                         fic=self.following_cnt, dfoc=delta_follower,
+                         dfic=delta_following))
         except Exception as e:
             logging.error(e, exc_info=True)
             self.text_to_speech("Failed to store session info")
-
 
     def _sync_db_col(self, column="followers"):
         """
