@@ -23,6 +23,15 @@ conn.execute('''CREATE TABLE instaDB
          WITHOUT ROWID;''')
 
 # maybe create a table for keeping a track of liked_user_posts with column as url
+conn.execute('''CREATE TABLE smartlog
+         (session_start VARCHAR(26) PRIMARY KEY NOT NULL,
+         session_end VARCHAR(26),
+         followers_cnt INT,
+         following_cnt INT,
+         delta_followers_cnt INT,
+         delta_following_cnt INT
+         )
+         WITHOUT ROWID;''')
 
 conn.execute('''CREATE TABLE creds
          (user_id VARCHAR(30) PRIMARY KEY NOT NULL,
