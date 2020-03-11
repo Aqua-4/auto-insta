@@ -12,7 +12,7 @@ import time
 import multiprocessing as mp
 
 
-def worker(user):
+def update_user_meta(user):
     instance = InstaOps(True, True, True, True)
 
     try:
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     incognito = InstaOps(True, True, True, True)
     missing_users = incognito._get_missing_meta_users()
     p = mp.Pool(mp.cpu_count())
-    p.map(worker, missing_users)
+    p.map(update_user_meta, missing_users)
 
     bot = InstaOps()
     bot.account_init()
