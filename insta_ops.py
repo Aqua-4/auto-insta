@@ -44,7 +44,7 @@ class InstaOps:
         chromedata = pd.read_sql(
             "select chromedata from creds", self.db_conn).chromedata[0]
         options.add_argument("--start-maximized")
-        options.add_argument("--disable-infobars")
+        options.add_argument("disable-infobars")
         self.headless = headless
         self.bool_mute = bool_mute
         if headless:
