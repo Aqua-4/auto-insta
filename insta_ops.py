@@ -45,6 +45,8 @@ class InstaOps:
             "select chromedata from creds", self.db_conn).chromedata[0]
         options.add_argument("--start-maximized")
         options.add_argument("disable-infobars")
+        options.add_experimental_option(
+            "excludeSwitches", ['enable-automation'])
         self.headless = headless
         self.bool_mute = bool_mute
         if headless:
@@ -67,7 +69,7 @@ class InstaOps:
             exec_path = "./chromedriver"
 
         self.driver = webdriver.Chrome(
-            executable_path=exec_path, chrome_options=options)
+            executable_path=exec_path, options=options)
         # Causes a segmentation FAULT
         # try to start sound Driver, but if not found Just put it on mute
         # try:
@@ -254,7 +256,6 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
-
 
     def _bool_check_tag(self, tag_name="#parashar"):
         """
