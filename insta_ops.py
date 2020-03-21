@@ -70,15 +70,7 @@ class InstaOps:
 
         self.driver = webdriver.Chrome(
             executable_path=exec_path, options=options)
-        # Causes a segmentation FAULT
-        # try to start sound Driver, but if not found Just put it on mute
-        # try:
-        #     self.engine = pyttsx3.init()
-        #     self.engine.say("")
-        #     self.engine.runAndWait()
-        # except:
-        #     self.bool_mute = True
-        #     print("Sound Driver has an issue, application has been set to mute")
+
         if not bool_mute:
             self.engine = pyttsx3.init()
 
@@ -99,7 +91,8 @@ class InstaOps:
         chcek if smart_activity has been started
         if yes - check if session info has been stored
         """
-        self._store_session_info()
+        if not self.incognito:
+            self._store_session_info()
         self.db_conn.commit()
         self.db_conn.close()
         self.text_to_speech("Shutting Down Instagram Bot", False)
@@ -256,6 +249,7 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _bool_check_tag(self, tag_name="#parashar"):
         """
