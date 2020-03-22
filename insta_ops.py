@@ -439,6 +439,10 @@ class InstaOps:
         self.db_conn.commit()
 
     def _user_meta(self, u_name):
+        """
+        collects demographic meta
+        return count of followers, following, posts
+        """
         meta = {}
         user_url = self.__format_userid(u_name)
         meta['followers'] = self.__get_number_of(
@@ -449,6 +453,30 @@ class InstaOps:
             "{}posts/".format(user_url))
         logging.info("{} Meta-> {}".format(u_name, meta))
         return meta
+
+    def _user_meta_deep(self, u_name):
+        """
+        TODO: WIP
+        collects psychographic meta
+        cr8 another class
+            - variables will be availabe
+            - seperate INIT & DEL
+            - 
+
+        class =>
+            - isntantiate selenium
+            - hit isnta api
+            - scroll through posts for location, avg_post_time, hashtags, 
+
+        function =>
+            - open x number of tabs all at once
+            - set(hashtags)
+            - max(location)
+            return these
+
+        """
+
+        pass
 
     def _like_userpost(self, user, count=0):
         """
@@ -568,6 +596,16 @@ class InstaOps:
             return False
         except Exception as e:
             logging.error(e, exc_info=True)
+
+    def _extract_hashtags(self):
+        """
+        TODO: test this out
+        <a class=" xil3i" href="/explore/tags/puma/">#puma</a>
+        return list of hashtags from a post
+        """
+        tags = self.driver.find_elements_by_xpath(
+            "//span/a[contains(@href,'/explore/tags')]")
+        return [tag.text for tag in tags]
 
     def __click_like(self):
         # click like button inside dialog box
