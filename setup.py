@@ -18,9 +18,12 @@ conn.execute('''CREATE TABLE instaDB
          bot_lead INT DEFAULT 0,
          hash_tag VARCHAR(64),
          posts_liked INT,
-         timestamp DATE
+         timestamp DATE,
+         group_id INT
          )
          WITHOUT ROWID;''')
+
+# conn.execute("ALTER TABLE instaDB ADD group_id INT;")
 
 # maybe create a table for keeping a track of liked_user_posts with column as url
 conn.execute('''CREATE TABLE smartlog
@@ -40,6 +43,30 @@ conn.execute('''CREATE TABLE creds
          chromedata VARCHAR(128)
          )
          WITHOUT ROWID;''')
+
+# group_id is auto-increment
+conn.execute('''CREATE TABLE dim_group
+         ( group_id INTEGER PRIMARY KEY,
+         group_name NOT NULL,
+         group_rules TEXT,
+         group_code VARCHAR(80)
+         ); ''')
+
+conn.execute('''CREATE TABLE dim_group_user_post
+         ( post_id INTEGER PRIMARY KEY,
+         post VARCHAR(80) NOT NULL,
+         timestamp DATE,
+         group_id INT,
+         user_id VARCHAR(30),
+         liked_by_all INT DEFAULT 0
+         );''')
+
+conn.execute('''CREATE TABLE fact_group_user_like
+         ( post_id INT,
+         group_id INT,
+         user_id VARCHAR(30),
+         bool_like INT DEFAULT 0
+         );''')
 
 conn.commit()
 
