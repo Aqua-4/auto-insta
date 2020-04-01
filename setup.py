@@ -46,23 +46,23 @@ conn.execute('''CREATE TABLE creds
 
 # group_id is auto-increment
 conn.execute('''CREATE TABLE dim_group
-         ( group_id INTEGER PRIMARY KEY,
-         group_name NOT NULL,
+         (group_id INTEGER PRIMARY KEY,
+         group_name VARCHAR(40),
          group_rules TEXT,
          group_code VARCHAR(80)
          ); ''')
 
 conn.execute('''CREATE TABLE dim_group_user_post
-         ( post_id INTEGER PRIMARY KEY,
-         post VARCHAR(80) NOT NULL,
-         timestamp DATE,
+         (post_id INTEGER PRIMARY KEY,
          group_id INT,
          user_id VARCHAR(30),
+         post VARCHAR(80) NOT NULL,
+         timestamp DATE,
          liked_by_all INT DEFAULT 0
          );''')
 
 conn.execute('''CREATE TABLE fact_group_user_like
-         ( post_id INT,
+         (post_id INT,
          group_id INT,
          user_id VARCHAR(30),
          bool_like INT DEFAULT 0
