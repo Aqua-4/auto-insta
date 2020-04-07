@@ -9,6 +9,7 @@ from random import randint, choice
 import time
 from datetime import datetime
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.keys import Keys
 
 # import platform
 
@@ -191,6 +192,13 @@ def _open_group_chat(group_name, group_code):
     group_ele = bot.driver.find_element_by_xpath(f"//a[@href='{_href}']")
     group_ele.click()
 
+def __insert_chat(txt_msg):
+    msg_box= bot.driver.find_element_by_xpath("//textarea[@placeholder='Message...']")
+    msg_box.clear()
+    for line in txt_msg.splitlines():
+        msg_box.send_keys(line)
+        msg_box.send_keys(Keys.SHIFT,Keys.ENTER)
+    msg_box.send_keys(Keys.ENTER)
 
 def __click_group_info_icon():
     bot.driver.execute_script(
@@ -229,10 +237,30 @@ for idx, group in group_df.iterrows():
     # current_users = pd.read_sql(f'select user_id from instaDb where group_id = {group_id};', bot.db_conn)
     # current_users = list(current_users['user_id'])
 
+    df_group_user_post = pd.read_sql(
+        f'''select * from dim_group_user_post''', bot.db_conn)
+
+    latest_posts = []
     for user_id in current_users:
         group_user_post_df = pd.read_sql(f'''select * from dim_group_user_post
-            WHERE user_id="{user_id}"
+            WHERE user_id="{user_id}" AND group_id={group_id}
             ORDER BY timestamp DESC;''', bot.db_conn)
-        latest_meta = group_user_post_df.iloc[0]
-        post_url = latest_meta.get('post_url')
-        _check_mutual_likes(group_id, user_id, post_url, current_users)
+        if not group_user_post_df.empty:
+            latest_meta = group_user_post_df.iloc[0]
+            post_url = latest_meta.get('post_url')
+            latest_posts.append(post_url)
+            _check_mutual_likes(group_id, user_id, post_url, current_users)
+
+    # df_group_user_like = pd.read_sql(
+    #     f'''select * from fact_group_user_like;''', bot.db_conn)
+    for post_url in latest_posts:
+        df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like
+            WHERE post_url="{post_url}" AND group_id = {group_id}
+            AND bool_like=0;''', bot.db_conn)
+        txt_msg = f'''{post_url}
+         Following are the like-defaulters for this post:
+        '''
+        for usr in df_group_user_like['user_id']:
+            txt_msg += f" :-( @{usr}\n"
+        _open_group_chat(group_name, group_code)
+        __insert_chat(txt_msg)
