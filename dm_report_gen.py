@@ -192,13 +192,17 @@ def _open_group_chat(group_name, group_code):
     group_ele = bot.driver.find_element_by_xpath(f"//a[@href='{_href}']")
     group_ele.click()
 
+
 def __insert_chat(txt_msg):
-    msg_box= bot.driver.find_element_by_xpath("//textarea[@placeholder='Message...']")
+    msg_box = bot.driver.find_element_by_xpath(
+        "//textarea[@placeholder='Message...']")
     msg_box.clear()
     for line in txt_msg.splitlines():
         msg_box.send_keys(line)
-        msg_box.send_keys(Keys.SHIFT,Keys.ENTER)
+        msg_box.send_keys(Keys.SHIFT, Keys.ENTER)
+    time.sleep(randint(5, 10))
     msg_box.send_keys(Keys.ENTER)
+
 
 def __click_group_info_icon():
     bot.driver.execute_script(
@@ -253,14 +257,25 @@ for idx, group in group_df.iterrows():
 
     # df_group_user_like = pd.read_sql(
     #     f'''select * from fact_group_user_like;''', bot.db_conn)
+    _open_group_chat(group_name, group_code)
+    # TODO: chk why this behaves weird
     for post_url in latest_posts:
         df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like
             WHERE post_url="{post_url}" AND group_id = {group_id}
             AND bool_like=0;''', bot.db_conn)
-        txt_msg = f'''{post_url}
-         Following are the like-defaulters for this post:
-        '''
-        for usr in df_group_user_like['user_id']:
-            txt_msg += f" :-( @{usr}\n"
-        _open_group_chat(group_name, group_code)
-        __insert_chat(txt_msg)
+
+        # if df_group_user_like.empty:
+        #     txt_msg = f'''{post_url}
+        #     Yay! everyone has participated in liking this post!
+        #     Pease keep on showing same love to all the family members.
+        #     '''
+        if not df_group_user_like.empty:
+            txt_msg = f'''{post_url}
+            Following are the like-defaulters for this post:
+            '''
+            for usr in df_group_user_like['user_id']:
+                txt_msg += f" :-( @{usr}\n"
+
+            # print(txt_msg)
+            __insert_chat(txt_msg)
+            time.sleep(randint(10, 20))
