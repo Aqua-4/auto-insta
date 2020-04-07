@@ -53,16 +53,15 @@ conn.execute('''CREATE TABLE dim_group
          ); ''')
 
 conn.execute('''CREATE TABLE dim_group_user_post
-         (post_id INTEGER PRIMARY KEY,
+         (post_url VARCHAR(80) PRIMARY KEY NOT NULL,
          group_id INT,
          user_id VARCHAR(30),
-         post VARCHAR(80) NOT NULL,
          timestamp DATE,
          liked_by_all INT DEFAULT 0
          );''')
 
 conn.execute('''CREATE TABLE fact_group_user_like
-         (post_id INT,
+         (post_url VARCHAR(80),
          group_id INT,
          user_id VARCHAR(30),
          bool_like INT DEFAULT 0
