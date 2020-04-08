@@ -34,7 +34,10 @@ for idx, group in group_df.iterrows():
     group_code = group.get('group_code')
     group_rules = group.get('group_rules')
     # current_users = bot._sync_user_group(group_id, group_name, group_code)
-    bot._sync_user_group(group_id, group_name, group_code)
+    try:
+        bot._sync_user_group(group_id, group_name, group_code)
+    except:
+        pass
     # current_users = pd.read_sql(f'select user_id from instaDb where group_id = {group_id};', bot.db_conn)
     # current_users = list(current_users['user_id'])
 

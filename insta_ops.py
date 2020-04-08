@@ -591,19 +591,22 @@ class InstaOps:
             self._update_meta(user, meta)
             self.__map_user_group(user, group_id)
             try:
-                self._InstaOps__open_first_userpost()
+                self.__open_first_userpost()
                 time.sleep(randint(2, 6))
                 try:
                     self.__click_like()
                 except:
                     logging.info("Post Already Liked")
-                # self._like_userpost(user, 1)
+
                 post_url = self.driver.current_url
-                post_stamp = __get_post_timestamp()
+                post_stamp = self.__get_post_timestamp()
                 self._sync_group_user_post(
                     user, group_id, post_url, post_stamp)
             except:
-                current_users.remove(user)
+                try:
+                    current_users.remove(user)
+                except:
+                    pass
         self.db_conn.commit()
 
     def _check_mutual_likes(self, group_id, user_id, post_url, current_users):
