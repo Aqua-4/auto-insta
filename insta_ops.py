@@ -603,7 +603,6 @@ class InstaOps:
                 self._sync_group_user_post(
                     user, group_id, post_url, post_stamp)
             except:
-                print(f"ERR:{user}")
                 current_users.remove(user)
         self.db_conn.commit()
 
