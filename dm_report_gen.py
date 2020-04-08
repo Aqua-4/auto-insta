@@ -8,13 +8,13 @@ import pandas as pd
 from random import randint, choice
 import time
 from datetime import datetime
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.keys import Keys
+import platform
 
-# import platform
 
-bot = InstaOps(False, False, True, True)
-
+if platform.system() == 'Linux':
+    bot = InstaOps(True, False, True)
+else:
+    bot = InstaOps(True)
 bot.account_init()
 
 """
