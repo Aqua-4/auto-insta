@@ -32,8 +32,13 @@ def _sync_user_group(group_id, group_name, group_code):
         bot._update_meta(user, meta)
         __map_user_group(user, group_id)
         try:
-            bot._like_userpost(user, 1)
-            # bot._InstaOps__open_first_userpost()
+            bot._InstaOps__open_first_userpost()
+            time.sleep(randint(2, 6))
+            try:
+                bot._InstaOps__click_like()
+            except:
+                print("already liked")
+            # bot._like_userpost(user, 1)
             post_url = bot.driver.current_url
             post_stamp = __get_post_timestamp()
             _sync_group_user_post(user, group_id, post_url, post_stamp)
@@ -49,8 +54,12 @@ def _check_mutual_likes(group_id, user_id, post_url, current_users):
     scroll through users - if users completed stop scrolling and update all_like as 1
     """
     bot.driver.get(post_url)
+    time.sleep(randint(2, 5))
     liked_list = _get_likes_list()
-    current_users.remove(user_id)
+    try:
+        current_users.remove(user_id)
+    except ValueError:
+        print(f"user->{user_id} not in list")
     intersect = list(set(liked_list) & set(current_users))
     if set(intersect) == set(current_users):
         bot.db_conn.execute(f'''UPDATE dim_group_user_post
@@ -97,6 +106,7 @@ def _get_likes_list():
     time.sleep(randint(3, 6))
     total_count = __likes_count()
     __click_expand_likes_btn()
+    time.sleep(randint(3, 6))
     dialog = bot.driver.find_element_by_xpath("//div/div[@role='dialog']")
     #    x=dialog.find_elements_by_xpath("//a[@title][@href]")
     #    y= dialog.find_elements_by_xpath("//div[@aria-labelledby][@class]")
@@ -106,7 +116,6 @@ def _get_likes_list():
     prev_cnt = 0
 
     exit_counter = 0
-    time.sleep(randint(3, 6))
 
     while(li_cnt <= total_count and exit_counter <= 5):
         prev_cnt = li_cnt
@@ -155,18 +164,26 @@ def __get_expand_likes_btn():
         raise NoSuchElementException
 
 
-def _sync_group_user_post(user, group_id, post_url=None, timestamp=None):
+def _sync_group_user_post(user_id, group_id, post_url=None, timestamp=None):
     """
      user_id VARCHAR(30),
      group_id INT,
      post_url VARCHAR(80) NOT NULL,
      timestamp DATE,
+
+    Enter only 1 post per day for a user_id,group_id
     """
-    if pd.read_sql(f'''select * from dim_group_user_post
-     WHERE post_url="{post_url}"''', bot.db_conn).empty:
+    if (pd.read_sql(f'''
+     select * from dim_group_user_post
+     WHERE post_url="{post_url}"''', bot.db_conn).empty) and (pd.read_sql(f'''
+     select * from dim_group_user_post
+     WHERE user_id="{user_id}"
+     AND group_id={group_id}
+     AND timestamp="{timestamp}"
+     ''', bot.db_conn).empty):
         bot.db_conn.execute(f'''INSERT INTO
                     dim_group_user_post(user_id, group_id, post_url, timestamp) Values
-                    ("{user}",{group_id},"{post_url}","{timestamp}");
+                    ("{user_id}",{group_id},"{post_url}","{timestamp}");
                 ''')
 
 
@@ -241,41 +258,53 @@ for idx, group in group_df.iterrows():
     # current_users = pd.read_sql(f'select user_id from instaDb where group_id = {group_id};', bot.db_conn)
     # current_users = list(current_users['user_id'])
 
-    df_group_user_post = pd.read_sql(
-        f'''select * from dim_group_user_post''', bot.db_conn)
+    # df_group_user_post = pd.read_sql( f'''select * from dim_group_user_post''', bot.db_conn)
+    # here are the latest posts
+    # please show some love
+    # I will announce defaulter results in a couple of hours
 
-    latest_posts = []
+    post_links = []
     for user_id in current_users:
         group_user_post_df = pd.read_sql(f'''select * from dim_group_user_post
-            WHERE user_id="{user_id}" AND group_id={group_id}
+            WHERE user_id="{user_id}"
+            AND group_id={group_id}
+            AND liked_by_all = {0}
             ORDER BY timestamp DESC;''', bot.db_conn)
-        if not group_user_post_df.empty:
-            latest_meta = group_user_post_df.iloc[0]
-            post_url = latest_meta.get('post_url')
-            latest_posts.append(post_url)
+        for idx, meta in group_user_post_df.iterrows():
+            post_url = meta.get('post_url')
+            post_links.append(post_url)
             _check_mutual_likes(group_id, user_id, post_url, current_users)
 
-    # df_group_user_like = pd.read_sql(
-    #     f'''select * from fact_group_user_like;''', bot.db_conn)
+    # df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like;''', bot.db_conn)
+
     _open_group_chat(group_name, group_code)
     # TODO: chk why this behaves weird
-    for post_url in latest_posts:
+    for post_url in post_links:
         df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like
             WHERE post_url="{post_url}" AND group_id = {group_id}
             AND bool_like=0;''', bot.db_conn)
 
-        # if df_group_user_like.empty:
-        #     txt_msg = f'''{post_url}
-        #     Yay! everyone has participated in liking this post!
-        #     Pease keep on showing same love to all the family members.
-        #     '''
-        if not df_group_user_like.empty:
+        df_group_user_like_exist = pd.read_sql(f'''select * from fact_group_user_like
+            WHERE post_url="{post_url}" AND group_id = {group_id}''', bot.db_conn)
+
+        if df_group_user_like.empty and df_group_user_like_exist.empty:
+            # TODO: why is data not being captured for these people?
+            pass
+        elif df_group_user_like.empty:
+            txt_msg = f'''{post_url}
+            Yay! everyone has participated in liking this post!
+            Pease keep on showing same love to all the family members.
+            '''
+        else:
             txt_msg = f'''{post_url}
             Following are the like-defaulters for this post:
             '''
             for usr in df_group_user_like['user_id']:
                 txt_msg += f" :-( @{usr}\n"
+        # print(txt_msg)
+        __insert_chat(txt_msg)
+        time.sleep(randint(5, 10))
 
-            # print(txt_msg)
-            __insert_chat(txt_msg)
-            time.sleep(randint(10, 20))
+# bot.db_conn.commit("DELETE FROM dim_group")
+#bot.db_conn.execute("DELETE FROM dim_group_user_post")
+#bot.db_conn.execute("DELETE FROM fact_group_user_like")
