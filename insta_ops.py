@@ -250,7 +250,6 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
-
     def _bool_check_tag(self, tag_name="#parashar"):
         """
         1. search for a hash-tag
@@ -461,12 +460,12 @@ class InstaOps:
         cr8 another class
             - variables will be availabe
             - seperate INIT & DEL
-            - 
+            -
 
         class =>
             - isntantiate selenium
             - hit isnta api
-            - scroll through posts for location, avg_post_time, hashtags, 
+            - scroll through posts for location, avg_post_time, hashtags,
 
         function =>
             - open x number of tabs all at once
@@ -577,8 +576,220 @@ class InstaOps:
         else:
             pass
 
+    # -------------------DM-REPORT------------------------
+    def _group_users_list(self, group_name, group_code):
+        self._open_group_chat(group_name, group_code)
+        return self._get_group_users()
+
+    def _sync_user_group(self, group_id, group_name, group_code):
+        self.__reset_user_group_map()
+        current_users = self._group_users_list(group_name, group_code)
+        current_users.remove("Search")
+        current_users.remove(self.user_id)
+        for user in current_users:
+            meta = self._user_meta(user)
+            self._update_meta(user, meta)
+            self.__map_user_group(user, group_id)
+            try:
+                self._InstaOps__open_first_userpost()
+                time.sleep(randint(2, 6))
+                try:
+                    self.__click_like()
+                except:
+                    logging.info("Post Already Liked")
+                # self._like_userpost(user, 1)
+                post_url = self.driver.current_url
+                post_stamp = __get_post_timestamp()
+                self._sync_group_user_post(
+                    user, group_id, post_url, post_stamp)
+            except:
+                print(f"ERR:{user}")
+                current_users.remove(user)
+        self.db_conn.commit()
+
+    def _check_mutual_likes(self, group_id, user_id, post_url, current_users):
+        """
+        open post-likes-list
+        scroll through users - if users completed stop scrolling and update all_like as 1
+        """
+        self.driver.get(post_url)
+        time.sleep(randint(2, 5))
+        liked_list = self._get_likes_list()
+        try:
+            current_users.remove(user_id)
+        except ValueError:
+            print(f"user->{user_id} not in list")
+        intersect = list(set(liked_list) & set(current_users))
+        if set(intersect) == set(current_users):
+            self.db_conn.execute(f'''UPDATE dim_group_user_post
+                        SET liked_by_all=1 WHERE post_url="{post_url}"''')
+        not_liked_by = list(set(current_users) - set(intersect))
+        logging.info(f'''{post_url} not liked by {",".join(not_liked_by)}''')
+        self._update_group_user_like(
+            group_id, post_url, current_users, not_liked_by)
+
+    def _update_group_user_like(self, group_id, post_url, current_users, not_liked_by):
+        """
+            fact_group_user_like
+            (post_url VARCHAR(80),
+            group_id INT,
+            user_id VARCHAR(30),
+            bool_like INT DEFAULT 0
+        """
+        for user_id in current_users:
+            bool_like = int(user_id not in not_liked_by)
+
+            if pd.read_sql(f'''select * from fact_group_user_like
+                WHERE post_url="{post_url}"
+                    AND group_id = {group_id}
+                    AND user_id = "{user_id}"
+            ''', self.db_conn).empty:
+                self.db_conn.execute(f'''INSERT INTO
+                    fact_group_user_like(post_url,group_id ,user_id ,bool_like)
+                    Values
+                    ("{post_url}",{group_id},"{user_id}",{bool_like});
+                ''')
+            else:
+                self.db_conn.execute(f'''UPDATE fact_group_user_like
+                SET bool_like = {bool_like}
+                WHERE
+                    post_url="{post_url}"
+                    AND group_id={group_id}
+                    AND user_id="{user_id}";
+                ''')
+            logging.info(f"updated fact_group_user_like for {user_id}")
+        self.db_conn.commit()
+        #    df_group_user_like = pd.read_sql('select * from fact_group_user_like;', self.db_conn)
+
+    def _get_likes_list(self):
+
+        time.sleep(randint(3, 6))
+        total_count = self.__likes_count()
+        self.__click_expand_likes_btn()
+        time.sleep(randint(3, 6))
+        dialog = self.driver.find_element_by_xpath("//div/div[@role='dialog']")
+
+        main_list = []
+        li_cnt = 0
+        prev_cnt = 0
+
+        exit_counter = 0
+
+        while(li_cnt <= total_count and exit_counter <= 5):
+            prev_cnt = li_cnt
+
+            try:
+                li_list = dialog.find_elements_by_xpath("//a[@title][@href]")
+                main_list.extend([a.text for a in li_list])
+                main_list = list(set(main_list))
+                li_list[-1].location_once_scrolled_into_view
+            except:
+                li_list[-2].location_once_scrolled_into_view
+
+            li_cnt = len(main_list)
+            time.sleep(randint(1, 3))
+            if li_cnt == prev_cnt:
+                # print(f"{li_cnt}<->{prev_cnt}")
+                exit_counter += 1
+                time.sleep(randint(3, 6))
+            else:
+                exit_counter = 0
+
+        return main_list
+
+    def _sync_group_user_post(self, user_id, group_id, post_url=None, timestamp=None):
+        """
+        user_id VARCHAR(30),
+        group_id INT,
+        post_url VARCHAR(80) NOT NULL,
+        timestamp DATE,
+
+        Enter only 1 post per day for a user_id,group_id
+        """
+        if (pd.read_sql(f'''
+        select * from dim_group_user_post
+        WHERE post_url="{post_url}"''', self.db_conn).empty) and (pd.read_sql(f'''
+        select * from dim_group_user_post
+        WHERE user_id="{user_id}"
+        AND group_id={group_id}
+        AND timestamp="{timestamp}"
+        ''', self.db_conn).empty):
+            self.db_conn.execute(f'''INSERT INTO
+                        dim_group_user_post(user_id, group_id, post_url, timestamp) Values
+                        ("{user_id}",{group_id},"{post_url}","{timestamp}");
+                    ''')
+
+    def _get_group_users(self):
+        self.__click_group_info_icon()
+        members = self.driver.find_elements_by_xpath("//div[@role='button']")
+        usr_list = []
+        for member in members:
+            usr_id = member.find_element_by_tag_name(
+                "div").text.splitlines()[0]
+            usr_list.append(usr_id)
+        return usr_list
+
+    def _open_group_chat(self, group_name, group_code):
+        self.driver.get(group_code)
+        _href = group_code.split("instagram.com")[1]
+        time.sleep(5)
+        group_ele = self.driver.find_element_by_xpath(f"//a[@href='{_href}']")
+        group_ele.click()
+
+    def _send_chat(self, txt_msg):
+        msg_box = self.driver.find_element_by_xpath(
+            "//textarea[@placeholder='Message...']")
+        msg_box.clear()
+        for line in txt_msg.splitlines():
+            msg_box.send_keys(line)
+            msg_box.send_keys(Keys.SHIFT, Keys.ENTER)
+        time.sleep(randint(5, 10))
+        msg_box.send_keys(Keys.ENTER)
+        logging.info(txt_msg)
+
+
 # --------------____________________________Private Func_________________________-------------------
 
+
+    def __likes_count(self):
+        #    why would I handle for 1 or 2 likes
+        exp_btn = self.__get_expand_likes_btn()
+        return int(exp_btn.text.replace(' others', ''))+1
+
+    def __click_expand_likes_btn(self):
+        #    return btn or false
+        for btn in self.driver.find_elements_by_xpath("//button[@type='button']"):
+            if ' others' in btn.text:
+                btn.click()
+                break
+        else:
+            raise NoSuchElementException
+
+    def __get_expand_likes_btn(self):
+        for btn in self.driver.find_elements_by_xpath("//button[@type='button']"):
+            if ' others' in btn.text:
+                return btn
+        else:
+            raise NoSuchElementException
+
+    def __get_post_timestamp(self):
+        timestamp = self.driver.find_element_by_tag_name(
+            "time").get_attribute("title")
+        return datetime.strptime(timestamp, "%b %d, %Y").date()
+
+    def __map_user_group(self, user, group_id):
+        self.db_conn.execute(f'''UPDATE instaDB SET group_id = {group_id}
+        where user_id="{user}";''')
+
+    def __reset_user_group_map(self):
+        self.db_conn.execute(f'''UPDATE instaDB SET group_id = "{None}";''')
+
+    def __click_group_info_icon(self):
+        self.driver.execute_script(
+            '''return document.querySelector('button>svg[aria-label="View Thread Details"]')
+            .parentElement.click();''')
+
+    # -------------------DM-REPORT------------------------
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back
         # return Boolean
