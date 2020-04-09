@@ -250,7 +250,6 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
-
     def _bool_check_tag(self, tag_name="#parashar"):
         """
         1. search for a hash-tag
@@ -618,21 +617,27 @@ class InstaOps:
         open post-likes-list
         scroll through users - if users completed stop scrolling and update all_like as 1
         """
-        self.driver.get(post_url)
-        time.sleep(randint(2, 5))
-        liked_list = self._get_likes_list()
         try:
-            current_users.remove(user_id)
-        except ValueError:
-            print(f"user->{user_id} not in list")
-        intersect = list(set(liked_list) & set(current_users))
-        if set(intersect) == set(current_users):
-            self.db_conn.execute(f'''UPDATE dim_group_user_post
-                        SET liked_by_all=1 WHERE post_url="{post_url}"''')
-        not_liked_by = list(set(current_users) - set(intersect))
-        logging.info(f'''{post_url} not liked by {",".join(not_liked_by)}''')
-        self._update_group_user_like(
-            group_id, post_url, current_users, not_liked_by)
+            self.driver.get(post_url)
+            time.sleep(randint(2, 5))
+            liked_list = self._get_likes_list()
+            try:
+                current_users.remove(user_id)
+            except ValueError:
+                print(f"user->{user_id} not in list")
+            intersect = list(set(liked_list) & set(current_users))
+            if set(intersect) == set(current_users):
+                self.db_conn.execute(f'''UPDATE dim_group_user_post
+                            SET liked_by_all=1 WHERE post_url="{post_url}"''')
+            not_liked_by = list(set(current_users) - set(intersect))
+            logging.info(
+                f'''{post_url} not liked by {",".join(not_liked_by)}''')
+            self._update_group_user_like(
+                group_id, post_url, current_users, not_liked_by)
+        except Exception as e:
+            logging.info(
+                f"Unable to get info for user {user_id} <-> post {post_url}")
+            logging.error(e, exc_info=True)
 
     def _update_group_user_like(self, group_id, post_url, current_users, not_liked_by):
         """
@@ -756,7 +761,6 @@ class InstaOps:
 
 
 # --------------____________________________Private Func_________________________-------------------
-
 
     def __likes_count(self):
         #    why would I handle for 1 or 2 likes
