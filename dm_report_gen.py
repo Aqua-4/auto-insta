@@ -83,7 +83,7 @@ for idx, group in group_df.iterrows():
         else:
             txt_msg = f'''{post_url}
             Hello folks I have liked the above post,
-            Requesting memebers listed below to please like it:
+            Requesting members listed below to please like it:
             '''
             for usr in df_group_user_like['user_id']:
                 txt_msg += f" :-( @{usr}\n"

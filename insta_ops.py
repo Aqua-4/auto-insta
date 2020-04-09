@@ -753,7 +753,7 @@ class InstaOps:
             "//textarea[@placeholder='Message...']")
         msg_box.clear()
         for line in txt_msg.splitlines():
-            msg_box.send_keys(line)
+            msg_box.send_keys(line.strip())
             msg_box.send_keys(Keys.SHIFT, Keys.ENTER)
         time.sleep(randint(5, 10))
         msg_box.send_keys(Keys.ENTER)
