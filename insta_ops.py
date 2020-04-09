@@ -583,31 +583,34 @@ class InstaOps:
         return self._get_group_users()
 
     def _sync_user_group(self, group_id, group_name, group_code):
-        self.__reset_user_group_map()
-        current_users = self._group_users_list(group_name, group_code)
-        current_users.remove("Search")
-        current_users.remove(self.user_id)
-        for user in current_users:
-            meta = self._user_meta(user)
-            self._update_meta(user, meta)
-            self.__map_user_group(user, group_id)
-            try:
-                self.__open_first_userpost()
-                time.sleep(randint(2, 6))
+        try:
+            self.__reset_user_group_map()
+            current_users = self._group_users_list(group_name, group_code)
+            current_users.remove("Search")
+            current_users.remove(self.user_id)
+            for user in current_users:
+                meta = self._user_meta(user)
+                self._update_meta(user, meta)
+                self.__map_user_group(user, group_id)
                 try:
-                    self.__click_like()
-                except:
-                    logging.info("Post Already Liked")
+                    self.__open_first_userpost()
+                    time.sleep(randint(2, 6))
+                    try:
+                        self.__click_like()
+                    except:
+                        logging.info("Post Already Liked")
 
-                post_url = self.driver.current_url
-                post_stamp = self.__get_post_timestamp()
-                self._sync_group_user_post(
-                    user, group_id, post_url, post_stamp)
-            except:
-                try:
-                    current_users.remove(user)
+                    post_url = self.driver.current_url
+                    post_stamp = self.__get_post_timestamp()
+                    self._sync_group_user_post(
+                        user, group_id, post_url, post_stamp)
                 except:
-                    pass
+                    try:
+                        current_users.remove(user)
+                    except:
+                        pass
+        except Exception as e:
+            logging.error(e, exc_info=True)
         self.db_conn.commit()
 
     def _check_mutual_likes(self, group_id, user_id, post_url, current_users):
