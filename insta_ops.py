@@ -677,7 +677,7 @@ class InstaOps:
 
         exit_counter = 0
 
-        while(li_cnt <= total_count and exit_counter <= 5):
+        while((li_cnt <= total_count and exit_counter <= 5) or li_cnt <= 400):
             prev_cnt = li_cnt
 
             try:
