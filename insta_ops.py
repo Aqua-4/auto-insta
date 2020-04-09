@@ -681,7 +681,7 @@ class InstaOps:
 
         exit_counter = 0
 
-        while((li_cnt <= total_count and exit_counter <= 5) or li_cnt <= 400):
+        while(li_cnt <= total_count and exit_counter <= 5):
             prev_cnt = li_cnt
 
             try:
@@ -694,8 +694,8 @@ class InstaOps:
 
             li_cnt = len(main_list)
             time.sleep(randint(1, 3))
-            if li_cnt == prev_cnt:
-                # print(f"{li_cnt}<->{prev_cnt}")
+            if li_cnt == prev_cnt or li_cnt >= 400:
+                logging.info(f"{li_cnt}<->{prev_cnt}")
                 exit_counter += 1
                 time.sleep(randint(3, 6))
             else:
