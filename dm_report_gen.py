@@ -36,6 +36,8 @@ for idx, group in group_df.iterrows():
     # current_users = bot._sync_user_group(group_id, group_name, group_code)
     try:
         bot._sync_user_group(group_id, group_name, group_code)
+        bot._open_group_chat(group_name, group_code)
+        bot._send_chat(group_rules)
     except:
         pass
     # current_users = pd.read_sql(f'select user_id from instaDb where group_id = {group_id};', bot.db_conn)
@@ -45,9 +47,6 @@ for idx, group in group_df.iterrows():
     # here are the latest posts
     # please show some love
     # I will announce defaulter results in a couple of hours
-
-    bot._open_group_chat(group_name, group_code)
-    bot._send_chat(group_rules)
 
     df_group_user_post = pd.read_sql(f'''select * from dim_group_user_post
                                 where group_id = {group_id};''', bot.db_conn)

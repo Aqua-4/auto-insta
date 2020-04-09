@@ -250,6 +250,7 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
+
     def _bool_check_tag(self, tag_name="#parashar"):
         """
         1. search for a hash-tag
@@ -737,6 +738,7 @@ class InstaOps:
         time.sleep(5)
         group_ele = self.driver.find_element_by_xpath(f"//a[@href='{_href}']")
         group_ele.click()
+        time.sleep(randint(5, 10))
 
     def _send_chat(self, txt_msg):
         msg_box = self.driver.find_element_by_xpath(
