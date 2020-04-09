@@ -46,6 +46,9 @@ for idx, group in group_df.iterrows():
     # please show some love
     # I will announce defaulter results in a couple of hours
 
+    bot._open_group_chat(group_name, group_code)
+    bot._send_chat(group_rules)
+
     df_group_user_post = pd.read_sql(f'''select * from dim_group_user_post
                                 where group_id = {group_id};''', bot.db_conn)
     current_users = list(df_group_user_post['user_id'])
@@ -83,7 +86,8 @@ for idx, group in group_df.iterrows():
             '''
         else:
             txt_msg = f'''{post_url}
-            Following are the like-defaulters for this post:
+            Hello folks I have liked the above post,
+            Requesting memebers listed below to please like it:
             '''
             for usr in df_group_user_like['user_id']:
                 txt_msg += f" :-( @{usr}\n"
