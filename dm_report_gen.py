@@ -48,7 +48,6 @@ for idx, group in group_df.iterrows():
     df_group_user_post = pd.read_sql(f'''select * from dim_group_user_post
                                 where group_id = {group_id};''', bot.db_conn)
     current_users = list(df_group_user_post['user_id'])
-    post_links = []
     for user_id in current_users:
         group_user_post_df = pd.read_sql(f'''select * from dim_group_user_post
             WHERE user_id="{user_id}"
@@ -57,14 +56,13 @@ for idx, group in group_df.iterrows():
             ORDER BY timestamp DESC;''', bot.db_conn)
         for idx, meta in group_user_post_df.iterrows():
             post_url = meta.get('post_url')
-            post_links.append(post_url)
             bot._check_mutual_likes(group_id, user_id, post_url, current_users)
 
     # df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like;''', bot.db_conn)
 
     bot._open_group_chat(group_name, group_code)
     # TODO: chk why this behaves weird
-    for post_url in post_links:
+    for post_url in list(set(df_group_user_post['post_url'])):
         df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like
             WHERE post_url="{post_url}" AND group_id = {group_id}
             AND bool_like=0;''', bot.db_conn)
