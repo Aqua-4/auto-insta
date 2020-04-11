@@ -156,6 +156,7 @@ class InstaOps:
                 self.db_conn.execute('''UPDATE instaDB
                     SET acc_status=0 WHERE user_id="{usr}";
                 '''.format(usr=user))
+                self.db_conn.commit()
                 _max = _max+1 if _max < 60 else 3
                 _err_cnt += 1
             time.sleep(randint(2, _max))
@@ -249,6 +250,7 @@ class InstaOps:
 
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
+
 
     def _bool_check_tag(self, tag_name="#parashar"):
         """
@@ -344,6 +346,7 @@ class InstaOps:
             );'''.format(start=start_stamp, end=end_stamp, foc=self.follower_cnt,
                          fic=self.following_cnt, dfoc=delta_follower,
                          dfic=delta_following))
+            self.db_conn.commit()
         except Exception as e:
             logging.error(e, exc_info=True)
             self.text_to_speech("Failed to store session info")
@@ -398,6 +401,7 @@ class InstaOps:
             self.__click_unfollow(u_name)
             self.db_conn.execute('''UPDATE instaDB SET following=0, timestamp="{t_stamp}"
              where user_id="{usr}"'''.format(usr=u_name, t_stamp=timestamp))
+        self.db_conn.commit()
 
     def _extract_users_from_tile(self, user_count=20):
         # return list of usernames
@@ -513,6 +517,7 @@ class InstaOps:
                 counter += 1
             self.db_conn.execute('''UPDATE instaDB
                  SET posts_liked="{cnt}" where user_id="{usr}";'''.format(usr=user, cnt=counter))
+            self.db_conn.commit()
 
         except Exception as e:
             logging.error(e, exc_info=True)
@@ -532,6 +537,8 @@ class InstaOps:
             self.db_conn.execute('''UPDATE instaDB
                  SET following=1, hash_tag="{tag}"
                  where user_id="{usr}";'''.format(usr=user, tag=hash_tag))
+            self.db_conn.commit()
+
         except Exception as e:
             logging.error(e, exc_info=True)
             self.text_to_speech(
@@ -729,6 +736,7 @@ class InstaOps:
                         dim_group_user_post(user_id, group_id, post_url, timestamp) Values
                         ("{user_id}",{group_id},"{post_url}","{timestamp}");
                     ''')
+            self.db_conn.commit()
 
     def _get_group_users(self):
         self.__click_group_info_icon()
@@ -762,6 +770,7 @@ class InstaOps:
 
 # --------------____________________________Private Func_________________________-------------------
 
+
     def __likes_count(self):
         #    why would I handle for 1 or 2 likes
         exp_btn = self.__get_expand_likes_btn()
@@ -791,9 +800,11 @@ class InstaOps:
     def __map_user_group(self, user, group_id):
         self.db_conn.execute(f'''UPDATE instaDB SET group_id = {group_id}
         where user_id="{user}";''')
+        self.db_conn.commit()
 
     def __reset_user_group_map(self):
         self.db_conn.execute(f'''UPDATE instaDB SET group_id = "{None}";''')
+        self.db_conn.commit()
 
     def __click_group_info_icon(self):
         self.driver.execute_script(
