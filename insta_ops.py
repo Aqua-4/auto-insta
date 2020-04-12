@@ -740,6 +740,7 @@ class InstaOps:
 
     def _get_group_users(self):
         self.__click_group_info_icon()
+        time.sleep(randint(5, 10))
         members = self.driver.find_elements_by_xpath("//div[@role='button']")
         usr_list = []
         for member in members:
