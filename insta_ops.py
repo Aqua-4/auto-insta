@@ -330,6 +330,16 @@ class InstaOps:
         self.session_stamp = str(datetime.now())
 
     def _store_session_info(self):
+        """
+        table schema:
+            session_start
+            session_end
+            followers_cnt
+            following_cnt
+            delta_followers_cnt
+            delta_following_cnt
+        insert session info into smartlog
+        """
         try:
             follower_cnt = self.__get_number_of(
                 "https://www.instagram.com/{}/followers/".format(self.user_id))
@@ -339,13 +349,15 @@ class InstaOps:
             delta_following = following_cnt - self.following_cnt
             start_stamp = self.session_stamp
             end_stamp = str(datetime.now())
-            self.db_conn.execute('''INSERT INTO
-            smartlog(session_start, session_end, followers_cnt, following_cnt,
-            delta_followers_cnt, delta_following_cnt )
-            Values ("{start}","{end}",{foc},{fic},{dfoc},{dfic}
-            );'''.format(start=start_stamp, end=end_stamp, foc=self.follower_cnt,
-                         fic=self.following_cnt, dfoc=delta_follower,
-                         dfic=delta_following))
+            self.db_conn.execute(f'''INSERT INTO
+             smartlog(session_start, session_end, followers_cnt, following_cnt,
+             delta_followers_cnt, delta_following_cnt)
+             Values ("{start_stamp}","{end_stamp}",{self.follower_cnt},
+             {self.following_cnt}, {delta_follower},{delta_following}
+             );''')
+            # .format(start=start_stamp, end=end_stamp, foc=self.follower_cnt,
+            #              fic=self.following_cnt, dfoc=delta_follower,
+            #              dfic=delta_following))
             self.db_conn.commit()
         except Exception as e:
             logging.error(e, exc_info=True)
