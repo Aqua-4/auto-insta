@@ -10,6 +10,7 @@ from insta_ops import InstaOps
 from random import randint, choice
 import time
 import multiprocessing as mp
+from datetime import datetime
 
 
 def update_user_meta(user):
@@ -24,7 +25,9 @@ def update_user_meta(user):
         '''.format(usr=user))
 
 
-print("Commencing HAVOC, please close other applications...")
+print(f"Commencing HAVOC @{datetime.now().date()},\
+     please close other applications...")
+
 if __name__ == '__main__':
 
     incognito = InstaOps(True, True, True, True)
