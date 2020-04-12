@@ -59,7 +59,7 @@ for idx, group in group_df.iterrows():
 
     bot._open_group_chat(group_name, group_code)
     # TODO: chk why this behaves weird
-    for post_url in list(set(df_group_user_post['post_url'])):
+    for post_url in list(df_group_user_post['post_url'].unique()):
         df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like
             WHERE post_url="{post_url}" AND group_id = {group_id}
             AND bool_like=0;''', bot.db_conn)
@@ -69,12 +69,14 @@ for idx, group in group_df.iterrows():
 
         if df_group_user_like.empty and df_group_user_like_exist.empty:
             # TODO: why is data not being captured for these people?
+            bot.text_to_speech(f"No data for post_url -> {post_url}")
             pass
         elif df_group_user_like.empty:
             txt_msg = f'''{post_url}
             Yay! everyone has participated in liking this post!
             Pease keep on showing same love to all the family members.
             '''
+            bot._send_chat(txt_msg)
         else:
             txt_msg = f'''{post_url}
             Hello folks I have liked the above post,
@@ -82,7 +84,7 @@ for idx, group in group_df.iterrows():
             '''
             for usr in df_group_user_like['user_id']:
                 txt_msg += f" :-( @{usr}\n"
-        bot._send_chat(txt_msg)
+            bot._send_chat(txt_msg)
         time.sleep(randint(5, 10))
 
 # bot.db_conn.commit("DELETE FROM dim_group")
