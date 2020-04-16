@@ -44,7 +44,9 @@ for idx, group in group_df.iterrows():
 
     df_group_user_post = pd.read_sql(f'''select * from dim_group_user_post
                                 where group_id = {group_id};''', bot.db_conn)
-    current_users = list(df_group_user_post['user_id'].unique())
+    _usr_df = df_group_user_post = pd.read_sql(f'''select user_id from instaDB
+                                where group_id = {group_id};''', bot.db_conn)
+    current_users = list(_usr_df['user_id'].unique())
     for user_id in current_users:
         group_user_post_df = pd.read_sql(f'''select * from dim_group_user_post
             WHERE user_id="{user_id}"
