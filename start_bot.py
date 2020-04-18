@@ -25,7 +25,7 @@ comments = list(comm_df.comments)
 
 # 1800 secs = 30 minutes
 slow_down = 0
-while(True):
+for _ in range(8):
     random_tag = choice(tags)
     bot._update_session_meta()
     bot.tagsearch_n_open(random_tag)
