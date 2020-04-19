@@ -25,7 +25,7 @@ comments = list(comm_df.comments)
 
 # 1800 secs = 30 minutes
 slow_down = 0
-for _ in range(8):
+for _ in range(randint(4, 8)):
     random_tag = choice(tags)
     bot._update_session_meta()
     bot.tagsearch_n_open(random_tag)
@@ -33,8 +33,9 @@ for _ in range(8):
     time.sleep(randint(900+slow_down, 1800+slow_down))
     bot.refresh_db()
     time.sleep(randint(900+slow_down, 1800+slow_down))
-    if (bot._user_meta(bot.user_id)["following"] + 100) < bot._user_meta(bot.user_id)["followers"]:
+    if (bot._user_meta(bot.user_id)["following"] - 100) > bot._user_meta(bot.user_id)["followers"]:
         bot.unfollow_bot_leads()
         time.sleep(randint(900+slow_down, 1800+slow_down))
     bot._store_session_info()
     slow_down += 300  # slow down bot by 5 minutes
+bot.text_to_speech("Bot has successfully completed all operations for the day")

@@ -208,7 +208,7 @@ class InstaOps:
         traitors = list(pd.read_sql("""select user_id from instaDb
          WHERE bot_lead=1 and following=1 and followers=0
          ORDER BY timestamp LIMIT 0,100;""", self.db_conn).user_id)
-        _max = len(traitors) if fu_all else randint(25, 50)
+        _max = len(traitors) if fu_all else randint(10, 30)
         for usr in traitors[:_max]:
             self._unfollow_user(usr)
         self.text_to_speech("Unfollowed users that don't follow back")
