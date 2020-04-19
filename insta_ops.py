@@ -756,9 +756,12 @@ class InstaOps:
         members = self.driver.find_elements_by_xpath("//div[@role='button']")
         usr_list = []
         for member in members:
-            usr_id = member.find_element_by_tag_name(
-                "div").text.splitlines()[0]
-            usr_list.append(usr_id)
+            try:
+                usr_id = member.find_element_by_tag_name(
+                    "div").text.splitlines()[0]
+                usr_list.append(usr_id)
+            except:
+                logging.error(f"cannot process {member}")
         return usr_list
 
     def _open_group_chat(self, group_name, group_code):
