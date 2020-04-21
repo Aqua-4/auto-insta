@@ -411,7 +411,7 @@ class InstaOps:
                 "User {} acc does not exist anymore".format(u_name), False)
         else:
             self.__click_unfollow(u_name)
-            self.db_conn.execute('''UPDATE instaDB SET following=0, timestamp="{t_stamp}"
+            self.db_conn.execute('''UPDATE instaDB SET timestamp="{t_stamp}"
              where user_id="{usr}"'''.format(usr=u_name, t_stamp=timestamp))
         self.db_conn.commit()
 
@@ -910,7 +910,7 @@ class InstaOps:
         try:
 
             follow_btn = self.driver.find_element_by_xpath(
-                "//button[contains(text(),'Following')]")
+                "//span[@aria-label='Following']")
             follow_btn.click()
 
             unfollow_btn = self.driver.find_element_by_xpath(
