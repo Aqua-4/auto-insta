@@ -95,11 +95,11 @@ class InstaOps:
             self._store_session_info()
         self.db_conn.commit()
         self.db_conn.close()
-        self.text_to_speech("Shutting Down Instagram Bot", False)
+        self.text_to_speech("Shutting Down Instagram Bot")
         self.driver.quit()
         if not self.incognito:
             self.text_to_speech(
-                "Bot has been powered off, goodbye {}".format(self.user_name), False)
+                "Bot has been powered off, goodbye {}".format(self.user_name))
 
     def account_init(self):
         """
@@ -118,7 +118,7 @@ class InstaOps:
         login_greet = "Welcome {}, you have been logged into your account and ".format(
             self.user_name)
         login_greet += "here are your stats for the current session "
-        self.text_to_speech(login_greet, False)
+        self.text_to_speech(login_greet)
         self.follower_cnt = self.__get_number_of(
             "https://www.instagram.com/{}/followers/".format(self.user_id))
         self.following_cnt = self.__get_number_of(
@@ -195,7 +195,7 @@ class InstaOps:
                     self._insert_comment(choice(comments))
             else:
                 self.text_to_speech(
-                    "Algorithm predicts that user {} won't follow back".format(user), False)
+                    "Algorithm predicts that user {} won't follow back".format(user))
             if usr_counter > user_count:
                 break
             # except Exception:
@@ -223,7 +223,7 @@ class InstaOps:
             "select user_id from instaDB where followers=0", self.db_conn)
         traitors = list(traitors.user_id)
         self.text_to_speech(
-            "Unfollowing users those who don't follow you", False)
+            "Unfollowing users those who don't follow you")
         for traitor in traitors:
             self._unfollow_user(traitor)
         self.text_to_speech("Unfollowed unfollowers completed")
@@ -408,7 +408,7 @@ class InstaOps:
              where user_id="{usr}"'''.format(usr=u_name, t_stamp=timestamp))
 
             self.text_to_speech(
-                "User {} acc does not exist anymore".format(u_name), False)
+                "User {} acc does not exist anymore".format(u_name))
         else:
             self.__click_unfollow(u_name)
             self.db_conn.execute('''UPDATE instaDB SET timestamp="{t_stamp}"
@@ -916,7 +916,7 @@ class InstaOps:
             unfollow_btn = self.driver.find_element_by_xpath(
                 "//button[contains(text(),'Unfollow')]")
             unfollow_btn.click()
-            self.text_to_speech("Unfollowed {}".format(u_name), False)
+            self.text_to_speech("Unfollowed {}".format(u_name))
             time.sleep(randint(5, 20))
             self.db_conn.execute('''UPDATE instaDB
                  SET following=0 where user_id="{}";'''.format(u_name))
@@ -971,7 +971,7 @@ class InstaOps:
             "//a[contains(@href,'/{}/{}/')]".format(self.user_id, attr_name))
         attr_btn.click()
         self.text_to_speech(
-            "Scraping {} list, this operation will take time".format(attr_name), False)
+            "Scraping {} list, this operation will take time".format(attr_name))
         time.sleep(5)
 
         li_cnt = 0
@@ -998,7 +998,7 @@ class InstaOps:
                 exit_counter = 0
 
         self.text_to_speech(
-            "Operation complete, formatting the results", False)
+            "Operation complete, formatting the results")
 
         _list = []
         for i in li_list:
@@ -1008,7 +1008,7 @@ class InstaOps:
                     tmp_ele.get_attribute("href")))
             except Exception as e:
                 logging.error(e, exc_info=True)
-        self.text_to_speech("Returned {} values".format(len(_list)), False)
+        self.text_to_speech("Returned {} values".format(len(_list)))
         return _list
 
     def __format_userid(self, link):
