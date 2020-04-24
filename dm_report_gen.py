@@ -41,9 +41,6 @@ for idx, group in group_df.iterrows():
     # here are the latest posts
     # please show some love
     # I will announce defaulter results in a couple of hours
-
-    df_group_user_post = pd.read_sql(f'''select * from dim_group_user_post
-                                where group_id = {group_id};''', bot.db_conn)
     _usr_df = pd.read_sql(f'''select user_id from instaDB
                                 where group_id = {group_id};''', bot.db_conn)
     current_users = list(_usr_df['user_id'].unique())
@@ -59,6 +56,11 @@ for idx, group in group_df.iterrows():
 
     # df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like;''', bot.db_conn)
 
+    df_group_user_post = pd.read_sql(f'''select * from dim_group_user_post
+                                where group_id = {group_id}
+                                AND liked_by_all = {0}
+                                ;''', bot.db_conn)
+
     bot._open_group_chat(group_name, group_code)
     # TODO: chk why this behaves weird
     for post_url in list(df_group_user_post['post_url'].unique()):
@@ -72,7 +74,6 @@ for idx, group in group_df.iterrows():
         if df_group_user_like.empty and df_group_user_like_exist.empty:
             # TODO: why is data not being captured for these people?
             bot.text_to_speech(f"No data for post_url -> {post_url}")
-            pass
         elif df_group_user_like.empty:
             txt_msg = f'''{post_url}
             Yay! everyone has participated in liking this post!
