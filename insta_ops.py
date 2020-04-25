@@ -403,7 +403,8 @@ class InstaOps:
         time.sleep(randint(5, 10))
         timestamp = datetime.now().date()
 
-        if len(self.driver.find_elements_by_tag_name("h2")):
+        txt_404 = "Sorry, this page isn't available."
+        if len(self.driver.find_elements_by_xpath(f'//h2[contains(text(),"{txt_404}")]')):
             self.db_conn.execute('''UPDATE instaDB SET acc_status=0, timestamp="{t_stamp}"
              where user_id="{usr}"'''.format(usr=u_name, t_stamp=timestamp))
 
@@ -947,7 +948,7 @@ class InstaOps:
                 "//ul/li[substring-before(*,' {}')]".format(action)
             ).text.replace(action, "").strip().replace(",", "")
         except NoSuchElementException as e:
-            action = action[:-1]
+            action = action[: -1]
             count = self.driver.find_element_by_xpath(
                 "//ul/li[substring-before(*,' {}')]".format(action)
             ).text.replace(action, "").strip().replace(",", "")
