@@ -42,7 +42,9 @@ for idx, group in group_df.iterrows():
     # please show some love
     # I will announce defaulter results in a couple of hours
     _usr_df = pd.read_sql(f'''select user_id from instaDB
-                                where group_id = {group_id};''', bot.db_conn)
+                                WHERE group_id = {group_id}
+                                AND followers = {1}
+                                ;''', bot.db_conn)
     current_users = list(_usr_df['user_id'].unique())
     for user_id in current_users:
         group_user_post_df = pd.read_sql(f'''select * from dim_group_user_post
