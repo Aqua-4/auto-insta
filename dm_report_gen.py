@@ -23,7 +23,7 @@ bot.account_init()
     2. get list of likes for the post
     3. highlight users from group who have not liked the post
 """
-
+bot._reset_user_group_map()
 group_df = pd.read_sql('select * from dim_group;', bot.db_conn)
 for idx, group in group_df.iterrows():
     group_id = group.get('group_id')
@@ -54,7 +54,7 @@ for idx, group in group_df.iterrows():
             ORDER BY timestamp DESC;''', bot.db_conn)
         for idx, meta in group_user_post_df.iterrows():
             post_url = meta.get('post_url')
-            bot._check_mutual_likes(group_id, user_id, post_url, current_users)
+            bot._check_mutual_likes(group_id, user_id, post_url)
 
     # df_group_user_like = pd.read_sql(f'''select * from fact_group_user_like;''', bot.db_conn)
 

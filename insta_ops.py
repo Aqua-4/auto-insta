@@ -251,7 +251,6 @@ class InstaOps:
 
 # --------------_______________________SEMI-Private Func_________________________-------------------
 
-
     def _bool_check_tag(self, tag_name="#parashar"):
         """
         1. search for a hash-tag
@@ -603,7 +602,6 @@ class InstaOps:
 
     def _sync_user_group(self, group_id, group_name, group_code):
         try:
-            self.__reset_user_group_map()
             current_users = self._group_users_list(group_name, group_code)
             current_users.remove("Search")
             current_users.remove(self.user_id)
@@ -628,15 +626,21 @@ class InstaOps:
                         current_users.remove(user)
                     except:
                         pass
+            self.__empty_fact_group(group_id)
         except Exception as e:
             logging.error(e, exc_info=True)
         self.db_conn.commit()
 
-    def _check_mutual_likes(self, group_id, user_id, post_url, current_users):
+    def _check_mutual_likes(self, group_id, user_id, post_url):
         """
         open post-likes-list
         scroll through users - if users completed stop scrolling and update all_like as 1
         """
+        _usr_df = pd.read_sql(f'''select user_id from instaDB
+                                WHERE group_id = {group_id}
+                                ;''', self.db_conn)
+        current_users = list(_usr_df['user_id'].unique())
+
         try:
             self.driver.get(post_url)
             time.sleep(randint(2, 5))
@@ -784,9 +788,11 @@ class InstaOps:
         msg_box.send_keys(Keys.ENTER)
         logging.info(txt_msg)
 
+    def _reset_user_group_map(self):
+        self.db_conn.execute(f'''UPDATE instaDB SET group_id = "{None}";''')
+        self.db_conn.commit()
 
 # --------------____________________________Private Func_________________________-------------------
-
 
     def __likes_count(self):
         #    why would I handle for 1 or 2 likes
@@ -819,16 +825,18 @@ class InstaOps:
         where user_id="{user}";''')
         self.db_conn.commit()
 
-    def __reset_user_group_map(self):
-        self.db_conn.execute(f'''UPDATE instaDB SET group_id = "{None}";''')
-        self.db_conn.commit()
-
     def __click_group_info_icon(self):
         self.driver.execute_script(
             '''return document.querySelector('button>svg[aria-label="View Thread Details"]')
             .parentElement.click();''')
 
+    def __empty_fact_group(self, group_id):
+        self.db_conn.execute(
+            f"DELETE FROM fact_group_user_like where group_id={group_id}")
+        self.db_conn.commit()
+
     # -------------------DM-REPORT------------------------
+
     def __predict(self, user_meta):
         # Add logic to calcute probability of user following you back
         # return Boolean
