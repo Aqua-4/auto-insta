@@ -76,6 +76,7 @@ for idx, group in group_df.iterrows():
         if df_group_user_like.empty and df_group_user_like_exist.empty:
             # TODO: why is data not being captured for these people?
             bot.text_to_speech(f"No data for post_url -> {post_url}")
+            bot._delete_dim_user_post(group_id, post_url)
         elif df_group_user_like.empty:
             txt_msg = f'''{post_url}
             Yay! everyone has participated in liking this post!
