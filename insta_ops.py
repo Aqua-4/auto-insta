@@ -792,9 +792,11 @@ class InstaOps:
         self.db_conn.execute(f'''UPDATE instaDB SET group_id = "{None}";''')
         self.db_conn.commit()
 
-    def _delete_dim_user_post(self, group_id, post_url):
+    def _delete_no_data_post(self, group_id, post_url):
         self.db_conn.execute(f'''DELETE from fact_group_user_like
-            WHERE post_url="{post_url}" AND group_id = {group_id}''')
+            WHERE post_url="{post_url}" AND group_id = {group_id};''')
+        self.db_conn.execute(f'''DELETE from dim_group_user_post
+            WHERE post_url="{post_url}" AND group_id = {group_id};''')
         self.db_conn.commit()
 
 # --------------____________________________Private Func_________________________-------------------
