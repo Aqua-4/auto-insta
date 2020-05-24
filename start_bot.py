@@ -33,9 +33,9 @@ for _ in range(randint(2, 7)):
     time.sleep(randint(900+slow_down, 1800+slow_down))
     bot.refresh_db()
     time.sleep(randint(900+slow_down, 1800+slow_down))
+    bot._store_session_info()
     if (bot._user_meta(bot.user_id)["following"] - 100) > bot._user_meta(bot.user_id)["followers"]:
         bot.unfollow_bot_leads()
         time.sleep(randint(900+slow_down, 1800+slow_down))
-    bot._store_session_info()
     slow_down += 300  # slow down bot by 5 minutes
 bot.text_to_speech("Bot has successfully completed all operations for the day")
