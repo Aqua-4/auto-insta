@@ -1,3 +1,13 @@
+# installation
+
+1. Click `download` or use command `git clone https://github.com/Aqua-4/auto-insta.git`
+2. Open `setup.sh`
+3. `python account_setup.py` - and follow instructions
+4. To update the database run `python sync_db.py` - this will store your current instagram audience
+5. Start the bot by running `python start_bot.py`
+
+
+# roadmap
 ## APPROACH:
 
 ### Where do i store password?
