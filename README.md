@@ -2,14 +2,16 @@
 
 1. Click `download` or use command `git clone https://github.com/Aqua-4/auto-insta.git`
 2. Open `setup.sh`
-3. `python account_setup.py` - and follow instructions
-4. To update the database run `python sync_db.py` - this will store your current instagram audience
-5. Start the bot by running `python start_bot.py`
+3. Run `pip install -r requirements.txt` to install all dependent libraries
+4. `python account_setup.py` - and follow instructions
+5. To update the database run `python sync_db.py` - this will store your current instagram audience
+6. Start the bot by running `python start_bot.py`
 
 * To reset password or to reset chrome path run `python account_setup.py`
 * to update software open git bash & run `git pull`
 
 
+___________________________________________________________
 # roadmap
 ## APPROACH:
 
