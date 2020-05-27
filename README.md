@@ -6,6 +6,9 @@
 4. To update the database run `python sync_db.py` - this will store your current instagram audience
 5. Start the bot by running `python start_bot.py`
 
+* To reset password or to reset chrome path run `python account_setup.py`
+* to update software open git bash & run `git pull`
+
 
 # roadmap
 ## APPROACH:
