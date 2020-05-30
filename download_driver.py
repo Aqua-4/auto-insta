@@ -49,8 +49,8 @@ def driver_file_ops():
 check_selenium()
 if SYS_TYPE == 'Linux':
     download_file(
-        "https://chromedriver.storage.googleapis.com/76.0.3809.126/chromedriver_linux64.zip")
+        "https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_linux64.zip")
 elif SYS_TYPE == 'Windows':
     download_file(
-        "https://chromedriver.storage.googleapis.com/76.0.3809.126/chromedriver_win32.zip")
+        "https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_win32.zip")
 driver_file_ops()
