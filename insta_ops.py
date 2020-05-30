@@ -945,7 +945,7 @@ class InstaOps:
     def __get_usr_name(self, usr_id):
         # return user_name from insta
         self.driver.get("https://www.instagram.com/{}/".format(usr_id))
-        usr_name = self.driver.find_elements_by_tag_name('h1')[1].text
+        usr_name = self.driver.find_elements_by_xpath('//section//h1')[0].text
         self.db_conn.execute('''UPDATE creds SET user_name="{}"
              where user_id="{}"'''.format(usr_name, self.user_id))
         self.db_conn.commit()
