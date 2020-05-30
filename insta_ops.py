@@ -373,7 +373,7 @@ class InstaOps:
         tmp_file = "tmp_{fol_col}.csv".format(fol_col=column)
         if path.isfile(tmp_file):
             tmp_df = pd.read_csv(tmp_file)
-            col_list = list(tmp_df['followers'])
+            col_list = list(tmp_df[column])
         else:
             col_list = self.__get_list_of(column)
             tmp_df = pd.DataFrame({column: col_list})
@@ -392,7 +392,8 @@ class InstaOps:
                  acc_status = 1
                  WHERE user_id = "{usr}";'''.format(fol_col=column, usr=user))
         self.db_conn.commit()
-        # remove(tmp_file)
+        if path.isfile(tmp_file):
+            remove(tmp_file)
         self.text_to_speech("Column {} has been synced with DB".format(column))
 
     def _unfollow_user(self, u_name):
