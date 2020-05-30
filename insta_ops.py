@@ -91,12 +91,12 @@ class InstaOps:
         chcek if smart_activity has been started
         if yes - check if session info has been stored
         """
+        self.driver.quit()
         if not self.incognito:
             self._store_session_info()
         self.db_conn.commit()
         self.db_conn.close()
         self.text_to_speech("Shutting Down Instagram Bot")
-        self.driver.quit()
         if not self.incognito:
             self.text_to_speech(
                 "Bot has been powered off, goodbye {}".format(self.user_name))
