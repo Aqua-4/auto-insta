@@ -1,7 +1,7 @@
 # installation
 
 1. Click `download` or use command `git clone https://github.com/Aqua-4/auto-insta.git`
-2. Open `setup.sh`
+2. Open `setup.sh` OR `sh setup.sh`
 3. Run `pip install -r requirements.txt` to install all dependent libraries
 4. Run `python download_driver.py` or download suitable driver from `https://chromedriver.chromium.org/downloads`
 5. `python account_setup.py` - and follow instructions
