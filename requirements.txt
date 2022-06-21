@@ -7,7 +7,7 @@ sklearn
 pyttsx3
 QtPy
 pyttsx3==2.7
-numpy==1.17.4
+numpy==1.22.0
 matplotlib==3.0.2
 fake_useragent==0.1.11
 lxml==4.2.5
